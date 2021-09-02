@@ -436,8 +436,8 @@ io.on('connection', (socket) => {
 			fields[0].challenger = "";
 			console.log("No Challenger available");
 		}
-		UpdateChallengers(1);
 		UpdateKings(1);
+		UpdateChallengers(1);
       }else if(fields[0].challengerWins >= 3){
 		io.emit('challenger-win',  matchRoom);
 		fields[0].challengerWins = 0;
@@ -460,8 +460,8 @@ io.on('connection', (socket) => {
 			fields[0].challenger = "";
 			console.log("No Challenger available");
 		}
-		UpdateChallengers(1);
 		UpdateKings(1);
+		UpdateChallengers(1);
 	  }
     }else if(matchRoom == "room2"){
 		fields[1].challengerWins++;
@@ -484,8 +484,8 @@ io.on('connection', (socket) => {
 			fields[1].challenger = "";
 			console.log("No Challenger available");
 		}
-		UpdateChallengers(2);
 		UpdateKings(2);
+		UpdateChallengers(2);
       }else if(fields[1].challengerWins >= 3){
 		io.emit('challenger-win',  matchRoom);
 		fields[1].challengerWins = 0;
@@ -508,8 +508,8 @@ io.on('connection', (socket) => {
 			fields[1].challenger = "";
 			console.log("No Challenger available");
 		}
-		UpdateChallengers(2);
 		UpdateKings(2);
+		UpdateChallengers(2);
 	  }
 	}else if(matchRoom == "room3"){
 		fields[2].challengerWins++;
@@ -534,8 +534,8 @@ io.on('connection', (socket) => {
 			fields[2].challenger = "";
 			console.log("No Challenger available");
 		}
-		UpdateChallengers(3);
 		UpdateKings(3);
+		UpdateChallengers(3);
       }else if(fields[2].challengerWins >= 3){
 		io.emit('challenger-win',  matchRoom);
 		fields[2].challengerWins = 0;
@@ -558,8 +558,8 @@ io.on('connection', (socket) => {
 			fields[2].challenger = "";
 			console.log("No Challenger available");
 		}
-		UpdateChallengers(3);
 		UpdateKings(3);
+		UpdateChallengers(3);
 	  }
 	}else{
 		fields[3].challengerWins++;
@@ -584,8 +584,8 @@ io.on('connection', (socket) => {
 			fields[3].challenger = "";
 			console.log("No Challenger available");
 		}
-		UpdateChallengers(4);
 		UpdateKings(4);
+		UpdateChallengers(4);
       }else if(fields[3].challengerWins >= 3){
 		io.emit('challenger-win',  matchRoom);
 		fields[3].challengerWins = 0;
@@ -608,8 +608,8 @@ io.on('connection', (socket) => {
 			fields[3].challenger = "";
 			console.log("No Challenger available");
 		}
-		UpdateChallengers(4);
 		UpdateKings(4);
+		UpdateChallengers(4);
 	  }
 	}
   });
