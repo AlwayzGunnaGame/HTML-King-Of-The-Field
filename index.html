@@ -255,7 +255,7 @@ $('#lose').on('click', function(){
 	
 	socket.on("update-queue", queuePos =>{
 		console.log("There are ", queuePos, " people in front of me");
-		$('#queue').html("There are ", queuePos, " people in front of me.");
+		$('#queue').html(queuePos);
 	});
 	
 	socket.on("free-win", () =>{
