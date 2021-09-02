@@ -247,6 +247,9 @@ io.on('connection', (socket) => {
 		}
 		if(fields[0].queue.length > 0){
 			fields[0].challenger = fields[0].queue.shift();
+			for(let i = 0; i < fields[0].queue.length; i++){
+				io.to(fields[0].queue[i]).emit('update-queue', i);
+			}
 		}else{
 			fields[0].challenger = "";
 		}
@@ -435,6 +438,9 @@ io.on('connection', (socket) => {
 		fields[0].king = fields[0].challenger;
 		if(fields[0].queue.length > 0){
 			fields[0].challenger = fields[0].queue.shift();
+			for(let i = 0; i < fields[0].queue.length; i++){
+				io.to(fields[0].queue[i]).emit('update-queue', i);
+			}
 		}else{
 			fields[0].challenger = "";
 			console.log("No Challenger available");
