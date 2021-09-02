@@ -616,6 +616,7 @@ io.on('connection', (socket) => {
   
   socket.on('disconnect', () => {
 	  console.log(fields[0].queue.includes(socket.username));
+	  console.log(fields[0].queue[0], " + ", socket.username);
 	  //console.log(fields[0].queue[socket.username]);
     if(fields[0].queue[socket.username]){
 		delete fields[0].queue[socket.username];
