@@ -619,7 +619,9 @@ io.on('connection', (socket) => {
 	  console.log(fields[0].queue[0], " + ", socket.username);
 	  //console.log(fields[0].queue[socket.username]);
     if(fields[0].queue.includes(socket.username)){
-		delete fields[0].queue[socket.username];
+		var index = fields[0].queue.indexOf(socket.username);
+		fields[0].queue.splice(index, 1);
+		//delete fields[0].queue[socket.username];
 	}else if(fields[1].queue[socket.username]){
 		delete fields[1].queue[socket.username];
 	}else if (fields[2].queue[socket.username]){
