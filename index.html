@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>King of the Field</title> 
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+<style>
+table.table tr {
+  text-align: center;
+}
+td.wide {
+  width: 45%;
+}
+td.narrow {
+  width: 10%;
+}
+</style>
+</head> 
+<body>
+<div class="container">
+<div class="row">
+  <div class="col-sm-6">
+ <div id="username" class="form-group">
+    <label for="nickname">Type a Username</label>
+    <input type="text" class="form-control" id="nickname"> 
+	<button type="button" id="submitName" class="btn btn-default" data-toggle="tooltip" title="Submit">Submit</button>
+</div>
+
+<div id="platformButtons" style="display:none;"> 
+<button type="button" id="ps4" class="btn btn-default" data-toggle="tooltip" data-placement="left" title="PS4">PS4</button>
+
+<button type="button" id="ps5" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="PS5">PS5</button>
+
+<button type="button" id="XboxOne" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Xbox One">Xbox One</button>
+
+<button type="button" id="XboxNext" class="btn btn-default" data-toggle="tooltip" data-placement="right" title="Xbox Series X/S">Xbox Series X/S</button>
+</div>
+
+<div id="resultButtons" style="display:none;"> 
+<p>
+  <button type="button" id="win" class="btn btn-success btn-lg btn-block">Win</button>
+  <button type="button" id="lose" class="btn btn-danger btn-lg btn-block">Lose</button>
+</p>
+</div>
+<div id="fieldsTable" style="display:none;"> 
+<table class="table">
+	<tr>
+		<th class="text-right">Challenger</th>
+		<th> </th>
+		<th class="text-left">King</th>
+		<th>Streak</th>
+	</tr>
+	<tr>
+		<td id="challenger1" class="wide text-right"></td>
+		<td class="narrow">vs</td>
+		<td id="king1" class="wide text-left"></td>
+		<td id="streak1" class="narrow">0</td>
+	</tr>
+	<tr>
+		<td id="challenger2" class="wide text-right"></td>
+		<td>vs</td>
+		<td id="king2" class="wide text-left"></td>
+		<td id="streak2" class="narrow">0</td>
+	</tr>
+	<tr>
+		<td id="challenger3" class="wide text-right"></td>
+		<td>vs</td>
+		<td id="king3" class="wide text-left"></td>
+		<td id="streak3" class="narrow">0</td>
+	</tr>
+	<tr>
+		<td id="challenger4" class="wide text-right"></td>
+		<td>vs</td>
+		<td id="king4" class="wide text-left"></td>
+		<td id="streak4" class="narrow">0</td>
+	</tr>
+</table>
+</div>
+  
+</div>
+</div>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+$(function(){
+var socket = io();
+var role = 0;
+var myRoom = "";
+var name = "";
+$('#submitName').on('click', function(){
+	socket.emit("set-name", $('#nickname').val());
+	console.log($('#nickname').val());
+	$('#platformButtons').show();
+	$('#username').hide();
+	name = $('#nickname').val();
+})
+$('#ps4').on('click', function(){
+	console.log("PS4 Button was Clicked");
+	socket.emit("request-room", "room1");
+	$('#fieldsTable').show();
+	$('#platformButtons').hide();
+})
+$('#ps5').on('click', function(){
+	console.log("PS5 Button was Clicked");
+	socket.emit("request-room", "room2");
+	$('#fieldsTable').show();
+	$('#platformButtons').hide();
+})
+$('#XboxOne').on('click', function(){
+	console.log("Xbox One Button was Clicked");
+	socket.emit("request-room", "room3");
+	$('#fieldsTable').show();
+	$('#platformButtons').hide();
+})
+$('#XboxNext').on('click', function(){
+	console.log("Xbox Series X/S Button was Clicked");
+	socket.emit("request-room", "room4");
+	$('#fieldsTable').show();
+	$('#platformButtons').hide();
+})
+$('#win').on('click', function(){
+	console.log(role);
+	$('#resultButtons').hide();
+	if(role == 1){
+		socket.emit("king-win", myRoom);
+	}else{
+		socket.emit("challenger-win", myRoom);
+	}
+})
+$('#lose').on('click', function(){
+	console.log(role);
+	$('#resultButtons').hide();
+	if(role == 2){
+		socket.emit("king-win", myRoom);
+	}else{
+		socket.emit("challenger-win", myRoom);
+	}
+})
+	socket.on("full-field", fields => {
+		console.log(fields);
+		$('#challenger1').html(fields[0].challenger);
+		$('#challenger2').html(fields[1].challenger);
+		$('#challenger3').html(fields[2].challenger);
+		$('#challenger4').html(fields[3].challenger);
+		$('#king1').html(fields[0].king);
+		$('#king2').html(fields[1].king);
+		$('#king3').html(fields[2].king);
+		$('#king4').html(fields[3].king);
+		$('#streak1').html(fields[0].streak);
+		$('#streak2').html(fields[1].streak);
+		$('#streak3').html(fields[2].streak);
+		$('#streak4').html(fields[3].streak);
+	});
+	
+	socket.on("enable-buttons", () =>{
+		$('#resultButtons').show();
+	});
+	
+	socket.on("clear-kings", roomNum => {
+		$('#king'+roomNum).html("");
+	});
+	
+	socket.on("clear-challengers", roomNum => {
+		$('#challenger'+roomNum).html("");
+	});
+	
+	socket.on("new-king-1", newKing => {
+		$('#king1').html(newKing);
+		myRoom = "room1";
+		if(newKing == name){
+			role = 1;
+		}
+	});
+	socket.on("new-king-2", newKing => {
+		$('#king2').html(newKing);
+		myRoom = "room2";
+		if(newKing == name){
+			role = 1;
+		}
+	});
+	socket.on("new-king-3", newKing => {
+		$('#king3').html(newKing);
+		myRoom = "room3";
+		if(newKing == name){
+			role = 1;
+		}
+	});
+	socket.on("new-king-4", newKing => {
+		$('#king4').html(newKing);
+		myRoom = "room4";
+		if(newKing == name){
+			role = 1;
+		}
+	});
+	socket.on("new-challenger-1", newChallenger => {
+		$('#challenger1').html(newChallenger);
+		myRoom = "room1";
+		if(name == $('#challenger1').text() || name == $('#king1').text()){
+			$('#resultButtons').show();
+		}
+		if(newChallenger == name){
+			role = 2; 
+		}
+	});
+	socket.on("new-challenger-2", newChallenger => {
+		$('#challenger2').html(newChallenger);
+		myRoom = "room2";
+		if(name == $('#challenger2').text() || name == $('#king2').text()){
+			$('#resultButtons').show();
+		}
+		if(newChallenger == name){
+			role = 2; 
+		}
+	});
+	socket.on("new-challenger-3", newChallenger => {
+		$('#challenger3').html(newChallenger);
+		myRoom = "room3";
+		if(name == $('#challenger3').text() || name == $('#king3').text()){
+			$('#resultButtons').show();
+		}
+		if(newChallenger == name){
+			role = 2; 
+		}
+	});
+	socket.on("new-challenger-4", newChallenger => {
+		$('#challenger4').html(newChallenger);
+		myRoom = "room4";
+		if(name == $('#challenger4').text() || name == $('#king4').text()){
+			$('#resultButtons').show();
+		}
+		if(newChallenger == name){
+			role = 2; 
+		}
+	});
+	
+	socket.on("update-1-streak", streakLength =>{
+		$('#streak1').html(streakLength);
+	});
+	socket.on("update-2-streak", streakLength =>{
+		$('#streak2').html(streakLength);
+	});
+	socket.on("update-3-streak", streakLength =>{
+		$('#streak3').html(streakLength);
+	});
+	socket.on("update-4-streak", streakLength =>{
+		$('#streak4').html(streakLength);
+	});
+	
+	socket.on("leave-room", () =>{
+		socket.emit("request-room", myRoom);
+	});
+});
+ </script>
+</body>
+</html>
