@@ -456,6 +456,9 @@ io.on('connection', (socket) => {
 		fields[0].king = fields[0].challenger;
 		if(fields[0].queue.length > 0){
 			fields[0].challenger = fields[0].queue.shift();
+		}else{
+			fields[0].challenger = "";
+			console.log("No Challenger available");
 		}
 		UpdateChallengers(1);
 		UpdateKings(1);
@@ -477,6 +480,9 @@ io.on('connection', (socket) => {
 		fields[1].king = fields[1].challenger;
 		if(fields[1].queue.length > 0){
 			fields[1].challenger = fields[1].queue.shift();
+		}else{
+			fields[1].challenger = "";
+			console.log("No Challenger available");
 		}
 		UpdateChallengers(2);
 		UpdateKings(2);
@@ -498,6 +504,9 @@ io.on('connection', (socket) => {
 		fields[1].king = fields[1].challenger;
 		if(fields[1].queue.length > 0){
 			fields[1].challenger = fields[1].queue.shift();
+		}else{
+			fields[1].challenger = "";
+			console.log("No Challenger available");
 		}
 		UpdateChallengers(2);
 		UpdateKings(2);
@@ -521,6 +530,9 @@ io.on('connection', (socket) => {
 		fields[2].king = fields[2].challenger;
 		if(fields[2].queue.length > 0){
 			fields[2].challenger = fields[2].queue.shift();
+		}else{
+			fields[2].challenger = "";
+			console.log("No Challenger available");
 		}
 		UpdateChallengers(3);
 		UpdateKings(3);
@@ -542,6 +554,9 @@ io.on('connection', (socket) => {
 		fields[2].king = fields[2].challenger;
 		if(fields[2].queue.length > 0){
 			fields[2].challenger = fields[2].queue.shift();
+		}else{
+			fields[2].challenger = "";
+			console.log("No Challenger available");
 		}
 		UpdateChallengers(3);
 		UpdateKings(3);
@@ -565,6 +580,9 @@ io.on('connection', (socket) => {
 		fields[3].king = fields[3].challenger;
 		if(fields[3].queue.length > 0){
 			fields[3].challenger = fields[3].queue.shift();
+		}else{
+			fields[3].challenger = "";
+			console.log("No Challenger available");
 		}
 		UpdateChallengers(4);
 		UpdateKings(4);
@@ -586,6 +604,9 @@ io.on('connection', (socket) => {
 		fields[3].king = fields[3].challenger;
 		if(fields[3].queue.length > 0){
 			fields[3].challenger = fields[3].queue.shift();
+		}else{
+			fields[3].challenger = "";
+			console.log("No Challenger available");
 		}
 		UpdateChallengers(4);
 		UpdateKings(4);
