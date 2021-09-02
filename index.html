@@ -258,8 +258,11 @@ $('#lose').on('click', function(){
 	});
 	
 	socket.on("update-queue", queuePos =>{
-		console.log("There are ", queuePos, " people in front of me");
-		$('#queue').html("There are " + queuePos + " people in front of me.");
+		console.log("There are ", queuePos, " people in front of you");
+		$('#queue').html("There are " + queuePos + " people in front of you.");
+		if(queuePos == 1){
+			$('#queue').html("There is " + queuePos + " person in front of you.");
+		}
 	});
 	
 	socket.on("free-win", () =>{
