@@ -144,6 +144,7 @@ $('#lose').on('click', function(){
 })
 
 	socket.on("invalid-name" () =>{
+		console.log("Invalid Name");
 		$('#platformButtons').hide();
 		$('#username').show();
 	});
