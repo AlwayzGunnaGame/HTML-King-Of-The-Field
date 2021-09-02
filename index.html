@@ -96,7 +96,6 @@ var myRoom = "";
 var name = "";
 $('#submitName').on('click', function(){
 	socket.emit("set-name", $('#nickname').val());
-	console.log($('#nickname').val());
 	$('#platformButtons').show();
 	$('#username').hide();
 	name = $('#nickname').val();
@@ -143,6 +142,12 @@ $('#lose').on('click', function(){
 		socket.emit("challenger-win", myRoom);
 	}
 })
+
+	socket.on("invalid-name" () =>{
+		$('#platformButtons').hide();
+		$('#username').show();
+	});
+	
 	socket.on("full-field", fields => {
 		console.log(fields);
 		$('#challenger1').html(fields[0].challenger);

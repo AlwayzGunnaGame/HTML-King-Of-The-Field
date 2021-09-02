@@ -79,14 +79,20 @@ io.on('connection', (socket) => {
   })
 
   socket.on("set-name", nickname => {
-    socket.username = nickname;
-    clients[nickname] = socket;
-	createRoom(socket.username);
-	socket.join(socket.username);
-	socket.roomId = socket.username;
-	FullUpdate();
-    console.log('Welcome ', socket.username);
-    console.log('There are now ', _.size(clients), ' players online!');
+	  if(clients.includes(nickname){
+		  var invalidName = nickname + "Invalid";
+		  socket.username = invalidName;
+		  io.to(invalidName).emit('invalid-name');
+	  }else{
+		socket.username = nickname;
+		clients[nickname] = socket;
+		createRoom(socket.username);
+		socket.join(socket.username);
+		socket.roomId = socket.username;
+		FullUpdate();
+		console.log('Welcome ', socket.username);
+		console.log('There are now ', _.size(clients), ' players online!');
+	  }
   })
 
   var SendLobbyList = function(){
