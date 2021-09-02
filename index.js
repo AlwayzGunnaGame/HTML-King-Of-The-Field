@@ -184,6 +184,9 @@ io.on('connection', (socket) => {
 	UpdateChallengers(1);
       }else{
       fields[0].queue.push(socket.username);
+	  for(let i = 0; i < fields[0].queue.length; i++){
+		  io.to(fields[0].queue[i]).emit('update-queue', i);
+	  }
       console.log(fields[0].queue);
       }
     }else if(requestedRoom == "room2"){

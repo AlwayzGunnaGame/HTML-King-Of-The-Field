@@ -252,6 +252,10 @@ $('#lose').on('click', function(){
 		$('#streak4').html(streakLength);
 	});
 	
+	socket.on("update-queue", queuePos =>{
+		console.log("There are ", queuePos, " people in front of me");
+	});
+	
 	socket.on("free-win", () =>{
 		$('#resultButtons').hide();
 		if(role == 1){
