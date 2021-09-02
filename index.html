@@ -253,6 +253,7 @@ $('#lose').on('click', function(){
 	});
 	
 	socket.on("free-win", () =>{
+		$('#resultButtons').hide();
 		if(role == 1){
 			socket.emit("king-win", myRoom);
 		}else{
