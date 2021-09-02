@@ -289,7 +289,8 @@ io.on('connection', (socket) => {
 		}
 		UpdateChallengers(1);
 	  }else if(fields[0].kingWins == fields[0].challengerWins){
-		  io.to("room1").emit( 'enable-buttons');
+		  io.to(fields[0].king).emit('enable-buttons');
+		  io.to(fields[0].challenger).emit('enable-buttons');
 	  }
     }else if(matchRoom == "room2"){
 		fields[1].kingWins++;
@@ -339,7 +340,8 @@ io.on('connection', (socket) => {
 		}
 			UpdateChallengers(2);
 		}else if(fields[1].kingWins == fields[1].challengerWins){
-		  io.to("room2").emit( 'enable-buttons');
+		  io.to(fields[1].king).emit('enable-buttons');
+		  io.to(fields[1].challenger).emit('enable-buttons');
 	  }
 	}else if (matchRoom == "room3"){
 		fields[2].kingWins++;
@@ -391,7 +393,8 @@ io.on('connection', (socket) => {
 		}
 			UpdateChallengers(3);
 		}else if(fields[2].kingWins == fields[2].challengerWins){
-		  io.to("room3").emit( 'enable-buttons');
+		  io.to(fields[2].king).emit('enable-buttons');
+		  io.to(fields[2].challenger).emit('enable-buttons');
 	  }
 	}else{
 		fields[3].kingWins++;
@@ -443,7 +446,8 @@ io.on('connection', (socket) => {
 		}
 			UpdateChallengers(4);
 		}else if(fields[3].kingWins == fields[3].challengerWins){
-		  io.to("room4").emit( 'enable-buttons');
+		  io.to(fields[3].king).emit('enable-buttons');
+		  io.to(fields[3].challenger).emit('enable-buttons');
 	  }
 	}
   });
@@ -504,6 +508,9 @@ io.on('connection', (socket) => {
 		}
 		UpdateKings(1);
 		UpdateChallengers(1);
+	  }else if(fields[0].challengerWins == fields[0].kingWins){
+		  io.to(fields[0].king).emit('enable-buttons');
+		  io.to(fields[0].challenger).emit('enable-buttons');
 	  }
     }else if(matchRoom == "room2"){
 		fields[1].challengerWins++;
@@ -558,6 +565,9 @@ io.on('connection', (socket) => {
 		}
 		UpdateKings(2);
 		UpdateChallengers(2);
+	  }else if(fields[1].kingWins == fields[1].challengerWins){
+		  io.to(fields[1].king).emit('enable-buttons');
+		  io.to(fields[1].challenger).emit('enable-buttons');
 	  }
 	}else if(matchRoom == "room3"){
 		fields[2].challengerWins++;
@@ -614,6 +624,9 @@ io.on('connection', (socket) => {
 		}
 		UpdateKings(3);
 		UpdateChallengers(3);
+	  }else if(fields[2].kingWins == fields[2].challengerWins){
+		  io.to(fields[2].king).emit('enable-buttons');
+		  io.to(fields[2].challenger).emit('enable-buttons');
 	  }
 	}else{
 		fields[3].challengerWins++;
@@ -670,6 +683,9 @@ io.on('connection', (socket) => {
 		}
 		UpdateKings(4);
 		UpdateChallengers(4);
+	  }else if(fields[3].kingWins == fields[3].challengerWins){
+		  io.to(fields[3].king).emit('enable-buttons');
+		  io.to(fields[3].challenger).emit('enable-buttons');
 	  }
 	}
   });
