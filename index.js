@@ -604,44 +604,46 @@ io.on('connection', (socket) => {
 	}
 	else if(fields[0].challenger == socket.username){
 		fields[0].kingWins = 3;
-		clients[fields[0].king].emit('free-win');
+		io.to(fields[0].king).emit('free-win');
+		//clients[fields[0].king].emit('free-win');
 	}else if(fields[0].king == socket.username){
 		if(fields[0].challenger != ""){
 		fields[0].challengerWins = 3;
-		clients[fields[0].challenger].emit('free-win');
+		io.to(fields[0].challenger).emit('free-win');
+		//clients[fields[0].challenger].emit('free-win');
 		}else{
 			fields[0].king = "";
 			UpdateKings(1);
 		}
 	}else if(fields[1].challenger == socket.username){
 		fields[1].kingWins = 3;
-		clients[fields[1].king].emit('free-win');
+		io.to(fields[1].king).emit('free-win');
 	}else if(fields[1].king == socket.username){
 		if(fields[1].challenger != ""){
 		fields[1].challengerWins = 3;
-		clients[fields[1].challenger].emit('free-win');
+		io.to(fields[1].challenger).emit('free-win');
 		}else{
 			fields[1].king = "";
 			UpdateKings(2);
 		}
 	}else if(fields[2].challenger == socket.username){
 		fields[2].kingWins = 3;
-		clients[fields[2].king].emit('free-win');
+		io.to(fields[2].king).emit('free-win');
 	}else if(fields[2].king == socket.username){
 		if(fields[2].challenger != ""){
 		fields[2].challengerWins = 3;
-		clients[fields[2].challenger].emit('free-win');
+		io.to(fields[2].challenger).emit('free-win');
 		}else{
 		fields[2].king = "";
 		UpdateKings(3);
 		}
 	}else if(fields[3].challenger == socket.username){
 		fields[3].kingWins = 3;
-		clients[fields[3].king].emit( 'free-win');
+		io.to(fields[3].king).emit('free-win');
 	}else if(fields[3].king == socket.username){
 		if(fields[3].challenger != ""){
 			fields[3].challengerWins = 3;
-			clients[fields[3].challenger].emit( 'free-win');
+			io.to(fields[3].challenger).emit('free-win');
 		}else{
 			fields[3].king = "";
 			UpdateKings(4);
