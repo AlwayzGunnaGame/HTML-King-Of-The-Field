@@ -256,12 +256,13 @@ io.on('connection', (socket) => {
 		io.emit('update-1-streak',  fields[0].streak);
 		
 		io.to(fields[0].challenger).emit( 'leave-room');
+		console.log(io.sockets.adapter.rooms[fields[0].challenger]);
 		if(io.sockets.adapter.rooms[fields[0].challenger] != undefined){
-		var partyMembers = io.sockets.adapter.rooms[fields[0].challenger].sockets;
-		for(var member in partyMembers){
-			var clientSocket = io.sockets.connected[member];
-			clientSocket.leave(matchRoom);
-		}
+			var partyMembers = io.sockets.adapter.rooms[fields[0].challenger].sockets;
+			for(var member in partyMembers){
+				var clientSocket = io.sockets.connected[member];
+				clientSocket.leave(matchRoom);
+			}
 		}
 		if(fields[0].queue.length > 0){
 			fields[0].challenger = fields[0].queue.shift();
