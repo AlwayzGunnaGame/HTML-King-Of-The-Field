@@ -79,7 +79,7 @@ io.on('connection', (socket) => {
   })
 
   socket.on("set-name", nickname => {
-	  if(clients.includes(nickname){
+	  if(clients.includes(nickname)){
 		  var invalidName = nickname + "Invalid";
 		  socket.username = invalidName;
 		  io.to(invalidName).emit('invalid-name');
