@@ -613,6 +613,7 @@ io.on('connection', (socket) => {
 		//clients[fields[0].challenger].emit('free-win');
 		}else{
 			fields[0].king = "";
+			fields[0].streak = 0;
 			UpdateKings(1);
 		}
 	}else if(fields[1].challenger == socket.username){
@@ -624,6 +625,7 @@ io.on('connection', (socket) => {
 		io.to(fields[1].challenger).emit('free-win');
 		}else{
 			fields[1].king = "";
+			fields[1].streak = 0;
 			UpdateKings(2);
 		}
 	}else if(fields[2].challenger == socket.username){
@@ -635,6 +637,7 @@ io.on('connection', (socket) => {
 		io.to(fields[2].challenger).emit('free-win');
 		}else{
 		fields[2].king = "";
+		fields[2].streak = 0;
 		UpdateKings(3);
 		}
 	}else if(fields[3].challenger == socket.username){
@@ -646,6 +649,7 @@ io.on('connection', (socket) => {
 			io.to(fields[3].challenger).emit('free-win');
 		}else{
 			fields[3].king = "";
+			fields[3].streak = 0;
 			UpdateKings(4);
 		}
 	}
