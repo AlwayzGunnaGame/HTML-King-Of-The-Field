@@ -198,6 +198,9 @@ io.on('connection', (socket) => {
 	UpdateChallengers(2);
       }else{
       fields[1].queue.push(socket.username);
+	  for(let i = 0; i < fields[1].queue.length; i++){
+				io.to(fields[1].queue[i]).emit('update-queue', i);
+			}
       console.log(fields[1].queue);
       }
     }else if (requestedRoom == "room3"){
@@ -209,6 +212,9 @@ io.on('connection', (socket) => {
 	UpdateChallengers(3);
       }else{
       fields[2].queue.push(socket.username);
+	  for(let i = 0; i < fields[2].queue.length; i++){
+				io.to(fields[2].queue[i]).emit('update-queue', i);
+			}
       console.log(fields[2].queue);
       }
     }else{
@@ -220,6 +226,9 @@ io.on('connection', (socket) => {
 	UpdateChallengers(4);
       }else{
       fields[3].queue.push(socket.username);
+	  for(let i = 0; i < fields[3].queue.length; i++){
+				io.to(fields[3].queue[i]).emit('update-queue', i);
+			}
       console.log(fields[3].queue);
       }
     }
@@ -272,6 +281,9 @@ io.on('connection', (socket) => {
 		}
 		if(fields[0].queue.length > 0){
 			fields[0].challenger = fields[0].queue.shift();
+			for(let i = 0; i < fields[0].queue.length; i++){
+				io.to(fields[0].queue[i]).emit('update-queue', i);
+			}
 		}else{
 			fields[0].challenger = "";
 		}
@@ -295,6 +307,9 @@ io.on('connection', (socket) => {
 		}
 		if(fields[1].queue.length > 0){
 			fields[1].challenger = fields[1].queue.shift();
+			for(let i = 0; i < fields[1].queue.length; i++){
+				io.to(fields[1].queue[i]).emit('update-queue', i);
+			}
 		}else{
 			fields[1].challenger = "";
 		}
@@ -316,6 +331,9 @@ io.on('connection', (socket) => {
 			}
 		if(fields[1].queue.length > 0){
 			fields[1].challenger = fields[1].queue.shift();
+			for(let i = 0; i < fields[1].queue.length; i++){
+				io.to(fields[1].queue[i]).emit('update-queue', i);
+			}
 		}else{
 			fields[1].challenger = "";
 		}
@@ -341,6 +359,9 @@ io.on('connection', (socket) => {
 			}
 		if(fields[2].queue.length > 0){
 			fields[2].challenger = fields[2].queue.shift();
+			for(let i = 0; i < fields[2].queue.length; i++){
+				io.to(fields[2].queue[i]).emit('update-queue', i);
+			}
 		}else{
 			fields[2].challenger = "";
 		}
@@ -362,6 +383,9 @@ io.on('connection', (socket) => {
 			}
 		if(fields[2].queue.length > 0){
 			fields[2].challenger = fields[2].queue.shift();
+			for(let i = 0; i < fields[2].queue.length; i++){
+				io.to(fields[2].queue[i]).emit('update-queue', i);
+			}
 		}else{
 			fields[2].challenger = "";
 		}
@@ -387,6 +411,9 @@ io.on('connection', (socket) => {
 			}
 		if(fields[3].queue.length > 0){
 			fields[3].challenger = fields[3].queue.shift();
+			for(let i = 0; i < fields[3].queue.length; i++){
+				io.to(fields[3].queue[i]).emit('update-queue', i);
+			}
 		}else{
 			fields[3].challenger = "";
 		}
@@ -408,6 +435,9 @@ io.on('connection', (socket) => {
 			}
 		if(fields[3].queue.length > 0){
 			fields[3].challenger = fields[3].queue.shift();
+			for(let i = 0; i < fields[3].queue.length; i++){
+				io.to(fields[3].queue[i]).emit('update-queue', i);
+			}
 		}else{
 			fields[3].challenger = "";
 		}
@@ -465,6 +495,9 @@ io.on('connection', (socket) => {
 		fields[0].king = fields[0].challenger;
 		if(fields[0].queue.length > 0){
 			fields[0].challenger = fields[0].queue.shift();
+			for(let i = 0; i < fields[0].queue.length; i++){
+				io.to(fields[0].queue[i]).emit('update-queue', i);
+			}
 		}else{
 			fields[0].challenger = "";
 			console.log("No Challenger available");
@@ -489,6 +522,9 @@ io.on('connection', (socket) => {
 		fields[1].king = fields[1].challenger;
 		if(fields[1].queue.length > 0){
 			fields[1].challenger = fields[1].queue.shift();
+			for(let i = 0; i < fields[1].queue.length; i++){
+				io.to(fields[1].queue[i]).emit('update-queue', i);
+			}
 		}else{
 			fields[1].challenger = "";
 			console.log("No Challenger available");
@@ -513,6 +549,9 @@ io.on('connection', (socket) => {
 		fields[1].king = fields[1].challenger;
 		if(fields[1].queue.length > 0){
 			fields[1].challenger = fields[1].queue.shift();
+			for(let i = 0; i < fields[1].queue.length; i++){
+				io.to(fields[1].queue[i]).emit('update-queue', i);
+			}
 		}else{
 			fields[1].challenger = "";
 			console.log("No Challenger available");
@@ -539,6 +578,9 @@ io.on('connection', (socket) => {
 		fields[2].king = fields[2].challenger;
 		if(fields[2].queue.length > 0){
 			fields[2].challenger = fields[2].queue.shift();
+			for(let i = 0; i < fields[2].queue.length; i++){
+				io.to(fields[2].queue[i]).emit('update-queue', i);
+			}
 		}else{
 			fields[2].challenger = "";
 			console.log("No Challenger available");
@@ -563,6 +605,9 @@ io.on('connection', (socket) => {
 		fields[2].king = fields[2].challenger;
 		if(fields[2].queue.length > 0){
 			fields[2].challenger = fields[2].queue.shift();
+			for(let i = 0; i < fields[2].queue.length; i++){
+				io.to(fields[2].queue[i]).emit('update-queue', i);
+			}
 		}else{
 			fields[2].challenger = "";
 			console.log("No Challenger available");
@@ -589,6 +634,9 @@ io.on('connection', (socket) => {
 		fields[3].king = fields[3].challenger;
 		if(fields[3].queue.length > 0){
 			fields[3].challenger = fields[3].queue.shift();
+			for(let i = 0; i < fields[3].queue.length; i++){
+				io.to(fields[3].queue[i]).emit('update-queue', i);
+			}
 		}else{
 			fields[3].challenger = "";
 			console.log("No Challenger available");
@@ -613,6 +661,9 @@ io.on('connection', (socket) => {
 		fields[3].king = fields[3].challenger;
 		if(fields[3].queue.length > 0){
 			fields[3].challenger = fields[3].queue.shift();
+			for(let i = 0; i < fields[3].queue.length; i++){
+				io.to(fields[3].queue[i]).emit('update-queue', i);
+			}
 		}else{
 			fields[3].challenger = "";
 			console.log("No Challenger available");
@@ -628,16 +679,28 @@ io.on('connection', (socket) => {
     if(fields[0].queue.includes(socket.username)){
 		var index = fields[0].queue.indexOf(socket.username);
 		fields[0].queue.splice(index, 1);
+		for(let i = 0; i < fields[0].queue.length; i++){
+				io.to(fields[0].queue[i]).emit('update-queue', i);
+			}
 		//delete fields[0].queue[socket.username];
 	}else if(fields[1].queue.includes(socket.username)){
 		var index = fields[1].queue.indexOf(socket.username);
 		fields[1].queue.splice(index, 1);
+		for(let i = 0; i < fields[1].queue.length; i++){
+				io.to(fields[1].queue[i]).emit('update-queue', i);
+			}
 	}else if (fields[2].queue.includes(socket.username)){
 		var index = fields[0].queue.indexOf(socket.username);
 		fields[2].queue.splice(index, 1);
+		for(let i = 0; i < fields[2].queue.length; i++){
+				io.to(fields[2].queue[i]).emit('update-queue', i);
+			}
 	}else if(fields[3].queue.includes(socket.username)){
 		var index = fields[0].queue.indexOf(socket.username);
 		fields[3].queue.splice(index, 1);
+		for(let i = 0; i < fields[3].queue.length; i++){
+				io.to(fields[3].queue[i]).emit('update-queue', i);
+			}
 	}
 	else if(fields[0].challenger == socket.username){
 		fields[0].kingWins = 3;
