@@ -143,11 +143,6 @@ $('#lose').on('click', function(){
 	}
 })
 
-	socket.on("invalid-name" () =>{
-		console.log("Invalid Name");
-		$('#platformButtons').hide();
-		$('#username').show();
-	});
 	
 	socket.on("full-field", fields => {
 		console.log(fields);
@@ -164,7 +159,13 @@ $('#lose').on('click', function(){
 		$('#streak3').html(fields[2].streak);
 		$('#streak4').html(fields[3].streak);
 	});
-	
+
+	socket.on("invalid-name", () =>{
+		console.log("Invalid Name");
+		$('#platformButtons').hide();
+		$('#username').show();
+	});
+		
 	socket.on("enable-buttons", () =>{
 		$('#resultButtons').show();
 	});
