@@ -83,7 +83,7 @@ io.on('connection', (socket) => {
 		  /*var invalidName = nickname + "Invalid";
 		  socket.username = invalidName;
 		  clients[nickname] = socket;*/
-		  io.to(socket.client.id).emit('invalid-name');
+		  socket.emit('invalid-name');
 	  }else{
 		socket.username = nickname;
 		clients[nickname] = socket;
