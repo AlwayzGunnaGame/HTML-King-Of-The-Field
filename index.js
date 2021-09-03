@@ -79,7 +79,7 @@ io.on('connection', (socket) => {
   })
 
   socket.on("set-name", nickname => {
-	  if(rooms[nickname]){
+	  if(rooms.includes(nickname)){
 		  var invalidName = nickname + "Invalid";
 		  socket.username = invalidName;
 		  io.to(invalidName).emit('invalid-name');
@@ -92,7 +92,6 @@ io.on('connection', (socket) => {
 		FullUpdate();
 		console.log('Welcome ', socket.username);
 		console.log('There are now ', _.size(clients), ' players online!');
-		console.log(clients);
 	  }
   });
 
