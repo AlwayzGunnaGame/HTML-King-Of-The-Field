@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>King of the Field</title> 
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
@@ -18,12 +20,53 @@ td.wide {
 td.narrow {
   width: 10%;
 }
+.main-info {
+	margin-top:20%;
+	text-align:center;
+}
+#platformButtons .btn {
+	width:161px;
+	margin:5px;
+}
+
+@media (max-height: 500px) {
+	.main-info{
+		margin-top:10px;
+	}
+}
+.navbar-center{
+	position: absolute;
+    left: 50%;
+    transform: translatex(-50%);
+}
 </style>
 </head> 
 <body>
-<div class="container">
+<nav class="navbar navbar-inverse">
+      <div class="container">
+        <div class="navbar-header">
+          <!-- <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button> -->
+		  <div class="navbar-center">
+          <a class="navbar-brand" href="#">King of the Field</a>
+		  </div>
+        </div>
+        <!-- <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+<div class="container main-info">
 <div class="row">
-  <div class="col-sm-6">
+  <div class="col-md-6 col-md-offset-3">
  <div id="username" class="form-group">
     <label for="nickname">Type a Username</label>
     <input type="text" class="form-control" id="nickname"> 
@@ -31,13 +74,9 @@ td.narrow {
 </div>
 
 <div id="platformButtons" style="display:none;"> 
-<button type="button" id="ps4" class="btn btn-default" data-toggle="tooltip" data-placement="left" title="PS4">PS4</button>
-
-<button type="button" id="ps5" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="PS5">PS5</button>
-
-<button type="button" id="XboxOne" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Xbox One">Xbox One</button>
-
-<button type="button" id="XboxNext" class="btn btn-default" data-toggle="tooltip" data-placement="right" title="Xbox Series X/S">Xbox Series X/S</button>
+<button type="button" id="ps4" class="btn btn-default btn-lg" data-toggle="tooltip" data-placement="left" title="PS4">PS4</button><button type="button" id="ps5" class="btn btn-default btn-lg" data-toggle="tooltip" data-placement="top" title="PS5">PS5</button>
+<br>
+<button type="button" id="XboxOne" class="btn btn-default btn-lg" data-toggle="tooltip" data-placement="bottom" title="Xbox One">Xbox One</button><button type="button" id="XboxNext" class="btn btn-default btn-lg" data-toggle="tooltip" data-placement="right" title="Xbox Series X/S">Xbox Series X/S</button>
 </div>
 
 <div id="resultButtons" style="display:none;"> 
