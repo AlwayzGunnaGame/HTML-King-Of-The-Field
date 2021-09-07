@@ -5,10 +5,6 @@ const http = require('http');
 var _ = require('underscore');
 const server = http.createServer(app);
 const io = require('socket.io')(server,{
-    //path: "/socket.io",
-    //pingInterval: 10 * 1000,
-    //pingTimeout: 5000,
-    //transports: ["websocket"],
   });
 
 var clients = {};
@@ -80,9 +76,6 @@ io.on('connection', (socket) => {
 
   socket.on("set-name", nickname => {
 	  if(rooms[nickname]){
-		  /*var invalidName = nickname + "Invalid";
-		  socket.username = invalidName;
-		  clients[nickname] = socket;*/
 		  socket.emit('invalid-name');
 	  }else{
 		socket.username = nickname;
@@ -103,20 +96,6 @@ io.on('connection', (socket) => {
   
   var FullUpdate = function(){
 	  socket.emit("full-field", fields);
-	  /*
-	  UpdateChallengers(1);
-	  UpdateChallengers(2);
-	  UpdateChallengers(3);
-	  UpdateChallengers(4);
-	  UpdateKings(1);
-	  UpdateKings(2);
-	  UpdateKings(3);
-	  UpdateKings(4);
-	  clients[socket.username].emit('update-1-streak',  fields[0].streak);
-	  clients[socket.username].emit('update-2-streak',  fields[1].streak);
-	  clients[socket.username].emit('update-3-streak',  fields[2].streak);
-	  clients[socket.username].emit('update-4-streak',  fields[3].streak);
-	  */
   }
 
   var UpdateKings = function(roomNum){
@@ -177,14 +156,15 @@ io.on('connection', (socket) => {
 
   socket.on('request-room', requestedRoom => {
 	  console.log(socket.username, " wants to join room " + requestedRoom);
+	  var roomName = "room"+requestedRoom;
     //console.log(socket.username, " wants to join ", requestedRoom);
     //var partyMembers = io.sockets.adapter.rooms[socket.username].sockets;
     //for(var member in partyMembers){
     //  var clientSocket = io.sockets.connected[member];
-	socket.join("room"+requestedRoom);
+	socket.join(roomName);
       //socket.join(requestedRoom);
     //}
-	var roomName = "room"+requestedRoom;
+	
 	if(fields[requestedRoom-1].king == ""){
 		fields[requestedRoom-1].king = socket.username;
 		UpdateKings(requestedRoom);
@@ -198,65 +178,6 @@ io.on('connection', (socket) => {
 		}
 	}
 	clients[socket.username].emit('join-room', roomName);
-    /*if(requestedRoom == "room1"){
-      if(fields[0].king == ""){
-	fields[0].king = socket.username;
-	UpdateKings(1);
-      }else if(fields[0].challenger == ""){
-	fields[0].challenger = socket.username;
-	UpdateChallengers(1);
-      }else{
-      fields[0].queue.push(socket.username);
-	  for(let i = 0; i < fields[0].queue.length; i++){
-		  io.to(fields[0].queue[i]).emit('update-queue', i);
-	  }
-      console.log(fields[0].queue);
-      }
-    }else if(requestedRoom == "room2"){
-      if(fields[1].king == ""){
-	fields[1].king = socket.username;
-	UpdateKings(2);
-      }else if(fields[1].challenger == ""){
-	fields[1].challenger = socket.username;
-	UpdateChallengers(2);
-      }else{
-      fields[1].queue.push(socket.username);
-	  for(let i = 0; i < fields[1].queue.length; i++){
-				io.to(fields[1].queue[i]).emit('update-queue', i);
-			}
-      console.log(fields[1].queue);
-      }
-    }else if (requestedRoom == "room3"){
-      if(fields[2].king == ""){
-	fields[2].king = socket.username;
-	UpdateKings(3);
-      }else if(fields[2].challenger == ""){
-	fields[2].challenger = socket.username;
-	UpdateChallengers(3);
-      }else{
-      fields[2].queue.push(socket.username);
-	  for(let i = 0; i < fields[2].queue.length; i++){
-				io.to(fields[2].queue[i]).emit('update-queue', i);
-			}
-      console.log(fields[2].queue);
-      }
-    }else{
-      if(fields[3].king == ""){
-	fields[3].king = socket.username;
-	UpdateKings(4);
-      }else if(fields[3].challenger == ""){
-	fields[3].challenger = socket.username;
-	UpdateChallengers(4);
-      }else{
-      fields[3].queue.push(socket.username);
-	  for(let i = 0; i < fields[3].queue.length; i++){
-				io.to(fields[3].queue[i]).emit('update-queue', i);
-			}
-      console.log(fields[3].queue);
-      }
-    }*/
-	
-    //io.to(socket.username).emit( 'join-room',  requestedRoom);
   })
 
   socket.on('king-win', matchRoom => {
@@ -265,564 +186,121 @@ io.on('connection', (socket) => {
 	  fields[matchRoom - 1].kingWins++;
 	  if(fields[matchRoom - 1].kingWins == 2 && fields[matchRoom - 1].challengerWins == 0){
 		  io.emit('kingWin', roomName);
-		  fields[matchRoom-1].kingWins = 0;
-		  fields[matchRoom-1].streak++;
-		  io.emit('update-'+matchRoom+'-streak', fields[matchRoom-1].streak);
-		  io.to(fields[matchRoom-1].challenger).emit('leave-room');
-		  var partyMembers = io.sockets.adapter.rooms[fields[matchRoom-1].challenger].sockets;
+		  fields[matchRoom - 1].kingWins = 0;
+		  fields[matchRoom - 1].streak++;
+		  io.emit('update-'+matchRoom+'-streak', fields[matchRoom - 1].streak);
+		  io.to(fields[matchRoom - 1].challenger).emit('leave-room');
+		  var partyMembers = io.sockets.adapter.rooms[fields[matchRoom - 1].challenger].sockets;
 		  for(var member in partyMembers){
 			  var clientSocket = io.sockets.connected[member];
+			  console.log(clientSocket);
 			  clientSocket.leave(roomName);
 		  }
-		  if(fields[matchRoom-1].queue.length > 0){
-			  fields[matchRoom-1].challenger = fields[matchRoom-1].queue.shift();
-			  for(let i = 0; i < fields[matchRoom-1].queue.length; i++){
-				  io.to(fields[matchRoom-1].queue[i]).emit('update-queue', i);
+		  if(fields[matchRoom - 1].queue.length > 0){
+			  fields[matchRoom - 1].challenger = fields[matchRoom - 1].queue.shift();
+			  for(let i = 0; i < fields[matchRoom - 1].queue.length; i++){
+				  io.to(fields[matchRoom - 1].queue[i]).emit('update-queue', i);
 			  }
 		  }else{
-			  fields[matchRoom-1].challenger = "";
+			  fields[matchRoom - 1].challenger = "";
 		  }
 		  UpdateChallengers(matchRoom);
-	  }else if(fields[matchRoom-1].kingWins >= 3){
-		  io.emit('king-win', 'room'+matchRoom);
-		  fields[matchRoom-1].kingWins = 0;
-		  fields[matchRoom-1].challengerWins = 0;
-		  fields[matchRoom-1].streak++;
-		  io.emit('update-'+matchRoom+'-streak', fields[matchRoom-1].streak);
-		  io.to(fields[matchRoom-1].challenger).emit('leave-room');
-		  if(io.sockets.adapter.rooms[fields[matchRoom-1].challenger] != undefined){
-			  var partyMembers = io.sockets.adapter.rooms[fields[matchRoom-1].challenger].sockets;
+	  }else if(fields[matchRoom - 1].kingWins >= 3){
+		  io.emit('king-win', roomName);
+		  fields[matchRoom - 1].kingWins = 0;
+		  fields[matchRoom - 1].challengerWins = 0;
+		  fields[matchRoom - 1].streak++;
+		  io.emit('update-'+matchRoom+'-streak', fields[matchRoom - 1].streak);
+		  io.to(fields[matchRoom - 1].challenger).emit('leave-room');
+		  if(io.sockets.adapter.rooms[fields[matchRoom - 1].challenger] != undefined){
+			  var partyMembers = io.sockets.adapter.rooms[fields[matchRoom - 1].challenger].sockets;
 			  for(var member in partyMembers){
-				  var clientsSocket = io.sockets.connected[member];
+				  var clientSocket = io.sockets.connected[member];
 				  clientSocket.leave(roomName);
 			  }
 		  }
-		  if(fields[matchRoom-1].queue.length > 0){
-			  fields[matchRoom-1].challenger = fields[matchRoom-1].queue.shift();
+		  if(fields[matchRoom - 1].queue.length > 0){
+			  fields[matchRoom - 1].challenger = fields[matchRoom - 1].queue.shift();
 			  for(let i = 0; i < fields[0].queue.length; i++){
 				  io.to(fields[0].queue[i]).emit('update-queue', i);
 			  }
 		  }else{
-			  fields[matchRoom-1].challenger = "";
+			  fields[matchRoom - 1].challenger = "";
 		  }
 		  UpdateChallengers(matchRoom);
-	  }else if(fields[matchRoom-1].kingWins == fields[matchRoom-1].challengerWins){
-		  io.to(fields[matchRoom-1].king).emit('enable-buttons');
-		  io.to(fields[matchRoom-1].challenger).emit('enable-buttons');
+	  }else if(fields[matchRoom - 1].kingWins == fields[matchRoom - 1].challengerWins){
+		  io.to(fields[matchRoom - 1].king).emit('enable-buttons');
+		  io.to(fields[matchRoom - 1].challenger).emit('enable-buttons');
 	  }
-    /*if(matchRoom == "room1"){
-      fields[0].kingWins++;
-      if(fields[0].kingWins == 2 && fields[0].challengerWins == 0){
-		io.emit('king-win',  matchRoom);
-		fields[0].kingWins = 0;
-		fields[0].streak++;
-		io.emit('update-1-streak',  fields[0].streak);
-		//clients[fields[0].challenger].emit('leave-room');
-		//var clientSocket = io.sockets.connected[fields[0].challenger];
-		//clientSocket.leave(matchRoom);
-		io.to(fields[0].challenger).emit('leave-room');
-		var partyMembers = io.sockets.adapter.rooms[fields[0].challenger].sockets;
-		for(var member in partyMembers){
-			var clientSocket = io.sockets.connected[member];
-		}
-		if(fields[0].queue.length > 0){
-			fields[0].challenger = fields[0].queue.shift();
-			for(let i = 0; i < fields[0].queue.length; i++){
-				io.to(fields[0].queue[i]).emit('update-queue', i);
-			}
-		}else{
-			fields[0].challenger = "";
-		}
-		UpdateChallengers(1);
-      }else if(fields[0].kingWins >= 3){
-		io.emit('king-win',  matchRoom);
-		fields[0].kingWins = 0;
-		fields[0].challengerWins = 0;
-		fields[0].streak++;
-		io.emit('update-1-streak',  fields[0].streak);
-		
-		io.to(fields[0].challenger).emit( 'leave-room');
-		console.log(io.sockets.adapter.rooms[fields[0].challenger]);
-		if(io.sockets.adapter.rooms[fields[0].challenger] != undefined){
-			var partyMembers = io.sockets.adapter.rooms[fields[0].challenger].sockets;
-			for(var member in partyMembers){
-				var clientSocket = io.sockets.connected[member];
-				clientSocket.leave(matchRoom);
-			}
-		}
-		if(fields[0].queue.length > 0){
-			fields[0].challenger = fields[0].queue.shift();
-			for(let i = 0; i < fields[0].queue.length; i++){
-				io.to(fields[0].queue[i]).emit('update-queue', i);
-			}
-		}else{
-			fields[0].challenger = "";
-		}
-		UpdateChallengers(1);
-	  }else if(fields[0].kingWins == fields[0].challengerWins){
-		  io.to(fields[0].king).emit('enable-buttons');
-		  io.to(fields[0].challenger).emit('enable-buttons');
-	  }
-    }else if(matchRoom == "room2"){
-		fields[1].kingWins++;
-		if(fields[1].kingWins == 2 && fields[1].challengerWins == 0){
-			io.emit('king-win',  matchRoom);
-			fields[1].kingWins = 0;
-			fields[1].streak++;
-			io.emit('update-2-streak',  fields[1].streak);
-			
-			io.to(fields[1].challenger).emit( 'leave-room');
-		var partyMembers = io.sockets.adapter.rooms[fields[1].challenger].sockets;
-		for(var member in partyMembers){
-			var clientSocket = io.sockets.connected[member];
-			clientSocket.leave(matchRoom);
-		}
-		if(fields[1].queue.length > 0){
-			fields[1].challenger = fields[1].queue.shift();
-			for(let i = 0; i < fields[1].queue.length; i++){
-				io.to(fields[1].queue[i]).emit('update-queue', i);
-			}
-		}else{
-			fields[1].challenger = "";
-		}
-			UpdateChallengers(2);
-		}else if(fields[1].kingWins >= 3){
-			io.emit('king-win',  matchRoom);
-			fields[1].kingWins = 0;
-			fields[1].challengerWins = 0;
-			fields[1].streak++;
-			io.emit('update-2-streak',  fields[1].streak);
-			
-			io.to(fields[1].challenger).emit( 'leave-room');
-			if(io.sockets.adapter.rooms[fields[2].challenger] != undefined){
-		var partyMembers = io.sockets.adapter.rooms[fields[1].challenger].sockets;
-		for(var member in partyMembers){
-			var clientSocket = io.sockets.connected[member];
-			clientSocket.leave(matchRoom);
-		}
-			}
-		if(fields[1].queue.length > 0){
-			fields[1].challenger = fields[1].queue.shift();
-			for(let i = 0; i < fields[1].queue.length; i++){
-				io.to(fields[1].queue[i]).emit('update-queue', i);
-			}
-		}else{
-			fields[1].challenger = "";
-		}
-			UpdateChallengers(2);
-		}else if(fields[1].kingWins == fields[1].challengerWins){
-		  io.to(fields[1].king).emit('enable-buttons');
-		  io.to(fields[1].challenger).emit('enable-buttons');
-	  }
-	}else if (matchRoom == "room3"){
-		fields[2].kingWins++;
-		if(fields[2].kingWins == 2 && fields[2].challengerWins == 0){
-			io.emit('king-win',  matchRoom);
-			fields[2].kingWins = 0;
-			fields[2].streak++;
-			io.emit('update-3-streak',  fields[2].streak);
-			
-			io.to(fields[2].challenger).emit( 'leave-room');
-			if(io.sockets.adapter.rooms[fields[2].challenger] != undefined){
-		var partyMembers = io.sockets.adapter.rooms[fields[2].challenger].sockets;
-		for(var member in partyMembers){
-			var clientSocket = io.sockets.connected[member];
-			clientSocket.leave(matchRoom);
-		}
-			}
-		if(fields[2].queue.length > 0){
-			fields[2].challenger = fields[2].queue.shift();
-			for(let i = 0; i < fields[2].queue.length; i++){
-				io.to(fields[2].queue[i]).emit('update-queue', i);
-			}
-		}else{
-			fields[2].challenger = "";
-		}
-			UpdateChallengers(3);
-		}else if(fields[2].kingWins >= 3){
-			io.emit('king-win',  matchRoom);
-			fields[2].kingWins = 0;
-			fields[2].challengerWins = 0;
-			fields[2].streak++;
-			io.emit('update-3-streak',  fields[2].streak);
-			
-			io.to(fields[2].challenger).emit( 'leave-room');
-			if(io.sockets.adapter.rooms[fields[2].challenger] != undefined){
-		var partyMembers = io.sockets.adapter.rooms[fields[2].challenger].sockets;
-		for(var member in partyMembers){
-			var clientSocket = io.sockets.connected[member];
-			clientSocket.leave(matchRoom);
-		}
-			}
-		if(fields[2].queue.length > 0){
-			fields[2].challenger = fields[2].queue.shift();
-			for(let i = 0; i < fields[2].queue.length; i++){
-				io.to(fields[2].queue[i]).emit('update-queue', i);
-			}
-		}else{
-			fields[2].challenger = "";
-		}
-			UpdateChallengers(3);
-		}else if(fields[2].kingWins == fields[2].challengerWins){
-		  io.to(fields[2].king).emit('enable-buttons');
-		  io.to(fields[2].challenger).emit('enable-buttons');
-	  }
-	}else{
-		fields[3].kingWins++;
-		if(fields[3].kingWins == 2 && fields[3].challengerWins == 0){
-			io.emit('king-win',  matchRoom);
-			fields[3].kingWins = 0;
-			fields[3].streak++;
-			io.emit('update-4-streak',  fields[3].streak);
-			
-			io.to(fields[3].challenger).emit( 'leave-room');
-			if(io.sockets.adapter.rooms[fields[3].challenger] != undefined){
-		var partyMembers = io.sockets.adapter.rooms[fields[3].challenger].sockets;
-		for(var member in partyMembers){
-			var clientSocket = io.sockets.connected[member];
-			clientSocket.leave(matchRoom);
-		}
-			}
-		if(fields[3].queue.length > 0){
-			fields[3].challenger = fields[3].queue.shift();
-			for(let i = 0; i < fields[3].queue.length; i++){
-				io.to(fields[3].queue[i]).emit('update-queue', i);
-			}
-		}else{
-			fields[3].challenger = "";
-		}
-			UpdateChallengers(4);
-		}else if(fields[3].kingWins >= 3){
-			io.emit('king-win',  matchRoom);
-			fields[3].kingWins = 0;
-			fields[3].challengerWins = 0;
-			fields[3].streak++;
-			io.emit('update-4-streak',  fields[3].streak);
-			
-			io.to(fields[3].challenger).emit( 'leave-room');
-			if(io.sockets.adapter.rooms[fields[3].challenger] != undefined){
-		var partyMembers = io.sockets.adapter.rooms[fields[3].challenger].sockets;
-		for(var member in partyMembers){
-			var clientSocket = io.sockets.connected[member];
-			clientSocket.leave(matchRoom);
-		}
-			}
-		if(fields[3].queue.length > 0){
-			fields[3].challenger = fields[3].queue.shift();
-			for(let i = 0; i < fields[3].queue.length; i++){
-				io.to(fields[3].queue[i]).emit('update-queue', i);
-			}
-		}else{
-			fields[3].challenger = "";
-		}
-			UpdateChallengers(4);
-		}else if(fields[3].kingWins == fields[3].challengerWins){
-		  io.to(fields[3].king).emit('enable-buttons');
-		  io.to(fields[3].challenger).emit('enable-buttons');
-	  }
-	}*/
+    
   });
   
   socket.on('challenger-win', matchRoom => {
 	  console.log("Challenger Win happened");
-	  fields[matchRoom-1].challengerWins++;
 	  var roomName = "room"+matchRoom;
-	  if(fields[matchRoom-1].challengerWins == 2 && fields[matchRoom-1].kingWins == 0){
-		  io.emit('challenger-win', "room"+matchRoom);
-		  fields[matchRoom-1].challengerWins = 0;
-		  fields[matchRoom-1].streak = 1;
-		  io.emit('update-'+matchRoom+'-streak', fields[matchRoom-1].streak);
-		  io.to(fields[matchRoom-1].king).emit('leave-room');
-		  var partyMembers = io.sockets.adapter.rooms[fields[matchRoom-1].king].sockets;
-		  for(var memeber in partyMembers){
+	  fields[matchRoom - 1].challengerWins++;
+	  if(fields[matchRoom - 1].challengerWins == 2 && fields[matchRoom - 1].kingWins == 0){
+		  io.emit('challengerWin', roomName);
+		  fields[matchRoom - 1].challengerWins = 0;
+		  fields[matchRoom - 1].streak = 1;
+		  io.emit('update-'+matchRoom+'-streak', fields[matchRoom - 1].streak);
+		  io.to(fields[matchRoom - 1].king).emit('leave-room');
+		  var partyMembers = io.sockets.adapter.rooms[fields[matchRoom - 1].king].sockets;
+		  for(var member in partyMembers){
 			  var clientSocket = io.sockets.connected[member];
 			  clientSocket.leave(roomName);
 		  }
-		  fields[matchRoom-1].king = fields[matchRoom-1].challenger;
-		  if(fields[matchRoom-1].queue.length > 0){
-			  fields[matchRoom-1].challenger = fields[matchRoom-1].queue.shift();
-			  for(let i = 0; i < fields[matchRoom-1].queue.length; i++){
-				  io.to(fields[matchRoom-1].queue[i]).emit('update-queue', i);
+		  fields[matchRoom - 1].king = fields[matchRoom - 1].challenger;
+		  if(fields[matchRoom - 1].queue.length > 0){
+			  fields[matchRoom - 1].challenger = fields[matchRoom - 1].queue.shift();
+			  for(let i = 0; i < fields[matchRoom - 1].queue.length; i++){
+				  io.to(fields[matchRoom - 1].queue[i]).emit('update-queue', i);
 			  }
 		  }else{
-			  fields[matchRoom-1].challenger = "";
+			  fields[matchRoom - 1].challenger = "";
 		  }
 		  UpdateKings(matchRoom);
 		  UpdateChallengers(matchRoom);
-	  }else if(fields[matchRoom-1].challengerWins >= 3){
-		  io.emit('challenger-win', "room"+matchRoom);
-		  fields[matchRoom-1].challengerWins = 0;
-		  fields[matchRoom-1].kingWins = 0;
-		  fields[matchRoom-1].streak = 1;
-		  io.emit('update-'+matchRoom+'-streak', fields[matchRoom-1].streak);
-		  io.to(fields[matchRoom-1].king).emit('leave-room');
-		  if(io.sockets.adapter.rooms[fields[matchRoom-1].king] != undefined){
-			var partyMembers = io.sockets.adapter.rooms[fields[matchRoom-1].king].sockets;
-			for(var member in partyMembers){
-				var clientSocket = io.sockets.connected[member];
-				clientSocket.leave(roomName);
-			}
+	  }else if(fields[matchRoom - 1].challengerWins >= 3){
+		  io.emit('challenger-win', 'room'+matchRoom);
+		  fields[matchRoom - 1].challengerWins = 0;
+		  fields[matchRoom - 1].kingWins = 0;
+		  fields[matchRoom - 1].streak++;
+		  io.emit('update-'+matchRoom+'-streak', fields[matchRoom - 1].streak);
+		  io.to(fields[matchRoom - 1].king).emit('leave-room');
+		  if(io.sockets.adapter.rooms[fields[matchRoom - 1].king] != undefined){
+			  var partyMembers = io.sockets.adapter.rooms[fields[matchRoom - 1].king].sockets;
+			  for(var member in partyMembers){
+				  var clientSocket = io.sockets.connected[member];
+				  clientSocket.leave(roomName);
+			  }
 		  }
-		  fields[matchRoom-1].king = fields[matchRoom-1].challenger;
-		  if(fields[matchRoom-1].queue.length > 0){
-			  fields[matchRoom-1].challenger = fields[matchRoom-1].queue.shift();
-			  for(let i = 0; i < fields[matchRoom-1].queue.length; i++){
-				  io.to(fields[matchRoom-1].queue[i]).emit('update-queue', i);
+		  fields[matchRoom - 1].king = fields[matchRoom - 1].challenger;
+		  if(fields[matchRoom - 1].queue.length > 0){
+			  fields[matchRoom - 1].challenger = fields[matchRoom - 1].queue.shift();
+			  for(let i = 0; i < fields[0].queue.length; i++){
+				  io.to(fields[0].queue[i]).emit('update-queue', i);
 			  }
 		  }else{
-			  fields[matchRoom-1].challenger = "";
+			  fields[matchRoom - 1].challenger = "";
 		  }
 		  UpdateKings(matchRoom);
 		  UpdateChallengers(matchRoom);
-	  }else if(fields[matchRoom-1].challengerWins == fields[matchRoom-1].kingWins){
-		  io.to(fields[matchRoom-1].king).emit('enable-buttons');
-		  io.to(fields[matchRoom-1].challenger).emit('enable-buttons');
+	  }else if(fields[matchRoom - 1].kingWins == fields[matchRoom - 1].challengerWins){
+		  io.to(fields[matchRoom - 1].king).emit('enable-buttons');
+		  io.to(fields[matchRoom - 1].challenger).emit('enable-buttons');
 	  }
-    /*if(matchRoom == "room1"){
-      fields[0].challengerWins++;
-	  console.log(fields[0].challenger);
-      if(fields[0].challengerWins == 2 && fields[0].kingWins == 0){
-		io.emit('challenger-win',  matchRoom);
-		fields[0].challengerWins = 0;
-		fields[0].streak = 1;
-		io.emit('update-1-streak',  fields[0].streak);
-		//clients[fields[0].king].emit('leave-room');
-		io.to(fields[0].king).emit( 'leave-room');
-		var partyMembers = io.sockets.adapter.rooms[fields[0].king].sockets;
-		for(var member in partyMembers){
-			var clientSocket = io.sockets.connected[member];
-			clientSocket.leave(matchRoom);
-		}
-		fields[0].king = fields[0].challenger;
-		if(fields[0].queue.length > 0){
-			fields[0].challenger = fields[0].queue.shift();
-			for(let i = 0; i < fields[0].queue.length; i++){
-				io.to(fields[0].queue[i]).emit('update-queue', i);
-			}
-		}else{
-			fields[0].challenger = "";
-			console.log("No Challenger available");
-		}
-		UpdateKings(1);
-		UpdateChallengers(1);
-      }else if(fields[0].challengerWins >= 3){
-		io.emit('challenger-win',  matchRoom);
-		fields[0].challengerWins = 0;
-		fields[0].kingWins = 0;
-		fields[0].streak = 1;
-		io.emit('update-1-streak',  fields[0].streak);
-		
-		io.to(fields[0].king).emit( 'leave-room');
-		if(io.sockets.adapter.rooms[fields[0].king] != undefined){
-			var partyMembers = io.sockets.adapter.rooms[fields[0].king].sockets;
-			for(var member in partyMembers){
-				var clientSocket = io.sockets.connected[member];
-				clientSocket.leave(matchRoom);
-			}
-		}
-		fields[0].king = fields[0].challenger;
-		if(fields[0].queue.length > 0){
-			fields[0].challenger = fields[0].queue.shift();
-			for(let i = 0; i < fields[0].queue.length; i++){
-				io.to(fields[0].queue[i]).emit('update-queue', i);
-			}
-		}else{
-			fields[0].challenger = "";
-			console.log("No Challenger available");
-		}
-		UpdateKings(1);
-		UpdateChallengers(1);
-	  }else if(fields[0].challengerWins == fields[0].kingWins){
-		  io.to(fields[0].king).emit('enable-buttons');
-		  io.to(fields[0].challenger).emit('enable-buttons');
-	  }
-    }else if(matchRoom == "room2"){
-		fields[1].challengerWins++;
-      if(fields[1].challengerWins == 2 && fields[1].kingWins == 0){
-		io.emit('challenger-win',  matchRoom);
-		fields[1].challengerWins = 0;
-		fields[1].streak = 1;
-		io.emit('update-2-streak',  fields[1].streak);
-		
-		io.to(fields[1].king).emit( 'leave-room');
-		var partyMembers = io.sockets.adapter.rooms[fields[1].king].sockets;
-		for(var member in partyMembers){
-			var clientSocket = io.sockets.connected[member];
-			clientSocket.leave(matchRoom);
-		}
-		fields[1].king = fields[1].challenger;
-		if(fields[1].queue.length > 0){
-			fields[1].challenger = fields[1].queue.shift();
-			for(let i = 0; i < fields[1].queue.length; i++){
-				io.to(fields[1].queue[i]).emit('update-queue', i);
-			}
-		}else{
-			fields[1].challenger = "";
-			console.log("No Challenger available");
-		}
-		UpdateKings(2);
-		UpdateChallengers(2);
-      }else if(fields[1].challengerWins >= 3){
-		io.emit('challenger-win',  matchRoom);
-		fields[1].challengerWins = 0;
-		fields[1].kingWins = 0;
-		fields[1].streak = 1;
-		io.emit('update-2-streak',  fields[1].streak);
-		
-		io.to(fields[1].king).emit( 'leave-room');
-		if(io.sockets.adapter.rooms[fields[1].king] != undefined){
-		var partyMembers = io.sockets.adapter.rooms[fields[1].king].sockets;
-		for(var member in partyMembers){
-			var clientSocket = io.sockets.connected[member];
-			clientSocket.leave(matchRoom);
-		}
-		}
-		fields[1].king = fields[1].challenger;
-		if(fields[1].queue.length > 0){
-			fields[1].challenger = fields[1].queue.shift();
-			for(let i = 0; i < fields[1].queue.length; i++){
-				io.to(fields[1].queue[i]).emit('update-queue', i);
-			}
-		}else{
-			fields[1].challenger = "";
-			console.log("No Challenger available");
-		}
-		UpdateKings(2);
-		UpdateChallengers(2);
-	  }else if(fields[1].kingWins == fields[1].challengerWins){
-		  io.to(fields[1].king).emit('enable-buttons');
-		  io.to(fields[1].challenger).emit('enable-buttons');
-	  }
-	}else if(matchRoom == "room3"){
-		fields[2].challengerWins++;
-      if(fields[2].challengerWins == 2 && fields[2].kingWins == 0){
-		io.emit('challenger-win',  matchRoom);
-		fields[2].challengerWins = 0;
-		fields[2].streak = 1;
-		io.emit('update-3-streak',  fields[2].streak);
-		
-		io.to(fields[2].king).emit( 'leave-room');
-		if(io.sockets.adapter.rooms[fields[2].king] != undefined){
-		var partyMembers = io.sockets.adapter.rooms[fields[2].king].sockets;
-		for(var member in partyMembers){
-			var clientSocket = io.sockets.connected[member];
-			clientSocket.leave(matchRoom);
-		}
-		}
-		fields[2].king = fields[2].challenger;
-		if(fields[2].queue.length > 0){
-			fields[2].challenger = fields[2].queue.shift();
-			for(let i = 0; i < fields[2].queue.length; i++){
-				io.to(fields[2].queue[i]).emit('update-queue', i);
-			}
-		}else{
-			fields[2].challenger = "";
-			console.log("No Challenger available");
-		}
-		UpdateKings(3);
-		UpdateChallengers(3);
-      }else if(fields[2].challengerWins >= 3){
-		io.emit('challenger-win',  matchRoom);
-		fields[2].challengerWins = 0;
-		fields[2].kingWins = 0;
-		fields[2].streak = 1;
-		io.emit('update-3-streak',  fields[2].streak);
-		
-		io.to(fields[2].king).emit( 'leave-room');
-		if(io.sockets.adapter.rooms[fields[2].king] != undefined){
-		var partyMembers = io.sockets.adapter.rooms[fields[2].king].sockets;
-		for(var member in partyMembers){
-			var clientSocket = io.sockets.connected[member];
-			clientSocket.leave(matchRoom);
-		}
-		}
-		fields[2].king = fields[2].challenger;
-		if(fields[2].queue.length > 0){
-			fields[2].challenger = fields[2].queue.shift();
-			for(let i = 0; i < fields[2].queue.length; i++){
-				io.to(fields[2].queue[i]).emit('update-queue', i);
-			}
-		}else{
-			fields[2].challenger = "";
-			console.log("No Challenger available");
-		}
-		UpdateKings(3);
-		UpdateChallengers(3);
-	  }else if(fields[2].kingWins == fields[2].challengerWins){
-		  io.to(fields[2].king).emit('enable-buttons');
-		  io.to(fields[2].challenger).emit('enable-buttons');
-	  }
-	}else{
-		fields[3].challengerWins++;
-      if(fields[3].challengerWins == 2 && fields[3].kingWins == 0){
-		io.emit('challenger-win',  matchRoom);
-		fields[3].challengerWins = 0;
-		fields[3].streak = 1;
-		io.emit('update-4-streak',  fields[3].streak);
-		
-		io.to(fields[3].king).emit( 'leave-room');
-		if(io.sockets.adapter.rooms[fields[3].king] != undefined){
-		var partyMembers = io.sockets.adapter.rooms[fields[3].king].sockets;
-		for(var member in partyMembers){
-			var clientSocket = io.sockets.connected[member];
-			clientSocket.leave(matchRoom);
-		}
-		}
-		fields[3].king = fields[3].challenger;
-		if(fields[3].queue.length > 0){
-			fields[3].challenger = fields[3].queue.shift();
-			for(let i = 0; i < fields[3].queue.length; i++){
-				io.to(fields[3].queue[i]).emit('update-queue', i);
-			}
-		}else{
-			fields[3].challenger = "";
-			console.log("No Challenger available");
-		}
-		UpdateKings(4);
-		UpdateChallengers(4);
-      }else if(fields[3].challengerWins >= 3){
-		io.emit('challenger-win',  matchRoom);
-		fields[3].challengerWins = 0;
-		fields[3].kingWins = 0;
-		fields[3].streak = 1;
-		io.emit('update-4-streak',  fields[3].streak);
-		
-		io.to(fields[3].king).emit( 'leave-room');
-		if(io.sockets.adapter.rooms[fields[3].king] != undefined){
-		var partyMembers = io.sockets.adapter.rooms[fields[3].king].sockets;
-		for(var member in partyMembers){
-			var clientSocket = io.sockets.connected[member];
-			clientSocket.leave(matchRoom);
-		}
-		}
-		fields[3].king = fields[3].challenger;
-		if(fields[3].queue.length > 0){
-			fields[3].challenger = fields[3].queue.shift();
-			for(let i = 0; i < fields[3].queue.length; i++){
-				io.to(fields[3].queue[i]).emit('update-queue', i);
-			}
-		}else{
-			fields[3].challenger = "";
-			console.log("No Challenger available");
-		}
-		UpdateKings(4);
-		UpdateChallengers(4);
-	  }else if(fields[3].kingWins == fields[3].challengerWins){
-		  io.to(fields[3].king).emit('enable-buttons');
-		  io.to(fields[3].challenger).emit('enable-buttons');
-	  }
-	}*/
+	  
+    
   });
   
   socket.on('disconnect', () => {
-	  //console.log(fields[0].queue[socket.username]);
     if(fields[0].queue.includes(socket.username)){
 		var index = fields[0].queue.indexOf(socket.username);
 		fields[0].queue.splice(index, 1);
 		for(let i = 0; i < fields[0].queue.length; i++){
 				io.to(fields[0].queue[i]).emit('update-queue', i);
 			}
-		//delete fields[0].queue[socket.username];
 	}else if(fields[1].queue.includes(socket.username)){
 		var index = fields[1].queue.indexOf(socket.username);
 		fields[1].queue.splice(index, 1);
@@ -845,12 +323,10 @@ io.on('connection', (socket) => {
 	else if(fields[0].challenger == socket.username){
 		fields[0].kingWins = 3;
 		io.to(fields[0].king).emit('free-win');
-		//clients[fields[0].king].emit('free-win');
 	}else if(fields[0].king == socket.username){
 		if(fields[0].challenger != ""){
 		fields[0].challengerWins = 3;
 		io.to(fields[0].challenger).emit('free-win');
-		//clients[fields[0].challenger].emit('free-win');
 		}else{
 			fields[0].king = "";
 			fields[0].streak = 0;
