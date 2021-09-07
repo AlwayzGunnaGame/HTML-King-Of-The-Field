@@ -176,13 +176,29 @@ io.on('connection', (socket) => {
   })
 
   socket.on('request-room', requestedRoom => {
-    console.log(socket.username, " wants to join ", requestedRoom);
+	  console.log(socket.username, " wants to join room " + requestedRoom);
+    //console.log(socket.username, " wants to join ", requestedRoom);
     //var partyMembers = io.sockets.adapter.rooms[socket.username].sockets;
     //for(var member in partyMembers){
     //  var clientSocket = io.sockets.connected[member];
-      socket.join(requestedRoom);
+	socket.join("room"+requestedRoom);
+      //socket.join(requestedRoom);
     //}
-    if(requestedRoom == "room1"){
+	var roomName = "room"+requestedRoom;
+	if(fields[requestedRoom-1].king == ""){
+		fields[requestedRoom-1].king = socket.username;
+		UpdateKings(requestedRoom);
+	}else if(fields[requestedRoom-1].challenger == ""){
+		fields[requestedRoom-1].challenger = socket.username;
+		UpdateChallengers(requestedRoom);
+	}else{
+		fields[requestedRoom-1].queue.push(socket.username);
+		for(let i = 0; i < fields[requestedRoom-1].queue.length; i++){
+			io.to(fields[requestedRoom-1].queue[i]).emit('update-queue', i);
+		}
+	}
+	clients[socket.username].emit('join-room', roomName);
+    /*if(requestedRoom == "room1"){
       if(fields[0].king == ""){
 	fields[0].king = socket.username;
 	UpdateKings(1);
@@ -238,14 +254,62 @@ io.on('connection', (socket) => {
 			}
       console.log(fields[3].queue);
       }
-    }
-	clients[socket.username].emit('join-room', requestedRoom);
+    }*/
+	
     //io.to(socket.username).emit( 'join-room',  requestedRoom);
   })
 
   socket.on('king-win', matchRoom => {
 	  console.log("King Win happened");
-    if(matchRoom == "room1"){
+	  var roomName = "room"+matchRoom;
+	  fields[matchRoom - 1].kingWins++;
+	  if(fields[matchRoom - 1].kingWins == 2 && fields[matchRoom - 1].challengerWins == 0){
+		  io.emit('kingWin', roomName);
+		  fields[matchRoom-1].kingWins = 0;
+		  fields[matchRoom-1].streak++;
+		  io.emit('update-'+matchRoom+'-streak', fields[matchRoom-1].streak);
+		  io.to(fields[matchRoom-1].challenger).emit('leave-room');
+		  var partyMembers = io.sockets.adapter.rooms[fields[matchRoom-1].challenger].sockets;
+		  for(var member in partyMembers){
+			  var clientSocket = io.sockets.connected[member];
+		  }
+		  if(fields[matchRoom-1].queue.length > 0){
+			  fields[matchRoom-1].challenger = fields[matchRoom-1].queue.shift();
+			  for(let i = 0; i < fields[matchRoom-1].queue.length; i++){
+				  io.to(fields[matchRoom-1].queue[i]).emit('update-queue', i);
+			  }
+		  }else{
+			  fields[matchRoom-1].challenger = "";
+		  }
+		  UpdateChallengers(matchRoom);
+	  }else if(fields[matchRoom-1].kingWins >= 3){
+		  io.emit('king-win', 'room'+matchRoom);
+		  fields[matchRoom-1].kingWins = 0;
+		  fields[matchRoom-1].challengerWins = 0;
+		  fields[matchRoom-1].streak++;
+		  io.emit('update-'+matchRoom+'-streak', fields[matchRoom-1].streak;
+		  io.to(fields[matchRoom-1].challenger).emit('leave-room');
+		  if(io.sockets.adapter.rooms[fields[matchRoom-1].challenger] != undefined){
+			  var partyMembers = io.sockets.adapter.rooms[fields[matchRoom-1].challenger].sockets;
+			  for(var member in partyMembers){
+				  var clientsSocket = io.sockets.connected[member];
+				  clientSocket.leave("room"+matchRoom);
+			  }
+		  }
+		  if(fields[matchRoom-1].queue.length > 0){
+			  fields[matchRoom-1].challenger = fields[matchRoom-1].queue.shift();
+			  for(let i = 0; i < fields[0].queue.length; i++){
+				  io.to(fields[0].queue[i]).emit('update-queue', i);
+			  }
+		  }else{
+			  fields[matchRoom-1].challenger = "";
+		  }
+		  UpdateChallengers(matchRoom);
+	  }else if(fields[matchRoom-1].kingWins == fields[matchRoom-1].challengerWins){
+		  io.to(fields[matchRoom-1].king).emit('enable-buttons');
+		  io.to(fields[matchRoom-1].challenger).emit('enable-buttons');
+	  }
+    /*if(matchRoom == "room1"){
       fields[0].kingWins++;
       if(fields[0].kingWins == 2 && fields[0].challengerWins == 0){
 		io.emit('king-win',  matchRoom);
@@ -255,11 +319,10 @@ io.on('connection', (socket) => {
 		//clients[fields[0].challenger].emit('leave-room');
 		//var clientSocket = io.sockets.connected[fields[0].challenger];
 		//clientSocket.leave(matchRoom);
-		io.to(fields[0].challenger).emit( 'leave-room');
+		io.to(fields[0].challenger).emit('leave-room');
 		var partyMembers = io.sockets.adapter.rooms[fields[0].challenger].sockets;
 		for(var member in partyMembers){
 			var clientSocket = io.sockets.connected[member];
-		
 		}
 		if(fields[0].queue.length > 0){
 			fields[0].challenger = fields[0].queue.shift();
@@ -456,12 +519,64 @@ io.on('connection', (socket) => {
 		  io.to(fields[3].king).emit('enable-buttons');
 		  io.to(fields[3].challenger).emit('enable-buttons');
 	  }
-	}
+	}*/
   });
   
   socket.on('challenger-win', matchRoom => {
 	  console.log("Challenger Win happened");
-    if(matchRoom == "room1"){
+	  fields[matchRoom-1].challengerWins++;
+	  if(fields[matchRoom-1].challengerWins == 2 && fields[matchRoom-1].kingWins == 0){
+		  io.emit('challenger-win', "room"+matchRoom);
+		  fields[matchRoom-1].challengerWins = 0;
+		  fields[matchRoom-1].streak = 1;
+		  io.emit('update-'+matchRoom+'-streak', fields[matchRoom-1].streak);
+		  io.to(fields[matchRoom-1].king).emit('leave-room');
+		  var partyMembers = io.sockets.adapter.rooms[fields[matchRoom-1].king].sockets;
+		  for(var memeber in partyMembers){
+			  var clientSocket = io.sockets.connected[member];
+			  clientSocket.leave("room"+matchRoom);
+		  }
+		  fields[matchRoom-1].king = fields[matchRoom-1].challenger;
+		  if(fields[matchRoom-1].queue.length > 0){
+			  fields[matchRoom-1].challenger = fields[matchRoom-1].queue.shift();
+			  for(let i = 0; i < fields[matchRoom-1].queue.length; i++){
+				  io.to(fields[matchRoom-1].queue[i]).emit('update-queue', i);
+			  }
+		  }else{
+			  fields[matchRoom-1].challenger = "";
+		  }
+		  UpdateKings(matchRoom);
+		  UpdateChallengers(matchRoom);
+	  }else if(fields[matchRoom-1].challengerWins >= 3){
+		  io.emit('challenger-win', "room"+matchRoom);
+		  fields[matchRoom-1].challengerWins = 0;
+		  fields[matchRoom-1].kingWins = 0;
+		  fields[matchRoom-1].streak = 1;
+		  io.emit('update-'+matchRoom+'-streak', fields[matchRoom-1].streak);
+		  io.to(fields[matchRoom-1].king).emit('leave-room');
+		  if(io.sockets.adapter.rooms[fields[matchRoom-1].king] != undefined){
+			var partyMembers = io.sockets.adapter.rooms[fields[matchRoom-1].king].sockets;
+			for(var member in partyMembers){
+				var clientSocket = io.sockets.connected[member];
+				clientSocket.leave("room"+matchRoom);
+			}
+		  }
+		  fields[matchRoom-1].king = fields[matchRoom-1].challenger;
+		  if(fields[matchRoom-1].queue.length > 0){
+			  fields[matchRoom-1].challenger = fields[matchRoom-1].queue.shift();
+			  for(let i = 0; i < fields[matchRoom-1].queue.length; i++){
+				  io.to(fields[matchRoom-1].queue[i]).emit('update-queue', i);
+			  }
+		  }else{
+			  fields[matchRoom-1].challenger = "";
+		  }
+		  UpdateKings(matchRoom);
+		  UpdateChallengers(matchRoom);
+	  }else if(fields[matchRoom-1].challengerWins == fields[matchRoom-1].kingWins){
+		  io.to(fields[matchRoom-1].king).emit('enable-buttons');
+		  io.to(fields[matchRoom-1].challenger).emit('enable-buttons');
+	  }
+    /*if(matchRoom == "room1"){
       fields[0].challengerWins++;
 	  console.log(fields[0].challenger);
       if(fields[0].challengerWins == 2 && fields[0].kingWins == 0){
@@ -694,7 +809,7 @@ io.on('connection', (socket) => {
 		  io.to(fields[3].king).emit('enable-buttons');
 		  io.to(fields[3].challenger).emit('enable-buttons');
 	  }
-	}
+	}*/
   });
   
   socket.on('disconnect', () => {

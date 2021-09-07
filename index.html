@@ -129,9 +129,10 @@ td.narrow {
 <script src="/socket.io/socket.io.js"></script>
 <script>
 $(function(){
+//var userSessionID = decodeURIComponent(window.location.search.split("UserSessionID")[1].split("&")[0]);
 var socket = io();
 var role = 0;
-var myRoom = "";
+var myRoom = 0;
 var name = "";
 $('#submitName').on('click', function(){
 	socket.emit("set-name", $('#nickname').val());
@@ -141,25 +142,25 @@ $('#submitName').on('click', function(){
 })
 $('#ps4').on('click', function(){
 	console.log("PS4 Button was Clicked");
-	socket.emit("request-room", "room1");
+	socket.emit("request-room", 1);
 	$('#fieldsTable').show();
 	$('#platformButtons').hide();
 })
 $('#ps5').on('click', function(){
 	console.log("PS5 Button was Clicked");
-	socket.emit("request-room", "room2");
+	socket.emit("request-room", 2);
 	$('#fieldsTable').show();
 	$('#platformButtons').hide();
 })
 $('#XboxOne').on('click', function(){
 	console.log("Xbox One Button was Clicked");
-	socket.emit("request-room", "room3");
+	socket.emit("request-room", 3);
 	$('#fieldsTable').show();
 	$('#platformButtons').hide();
 })
 $('#XboxNext').on('click', function(){
 	console.log("Xbox Series X/S Button was Clicked");
-	socket.emit("request-room", "room4");
+	socket.emit("request-room", 4);
 	$('#fieldsTable').show();
 	$('#platformButtons').hide();
 })
@@ -219,35 +220,35 @@ $('#lose').on('click', function(){
 	
 	socket.on("new-king-1", newKing => {
 		$('#king1').html(newKing);
-		myRoom = "room1";
+		myRoom = 1;
 		if(newKing == name){
 			role = 1;
 		}
 	});
 	socket.on("new-king-2", newKing => {
 		$('#king2').html(newKing);
-		myRoom = "room2";
+		myRoom = 2;
 		if(newKing == name){
 			role = 1;
 		}
 	});
 	socket.on("new-king-3", newKing => {
 		$('#king3').html(newKing);
-		myRoom = "room3";
+		myRoom = 3;
 		if(newKing == name){
 			role = 1;
 		}
 	});
 	socket.on("new-king-4", newKing => {
 		$('#king4').html(newKing);
-		myRoom = "room4";
+		myRoom = 4;
 		if(newKing == name){
 			role = 1;
 		}
 	});
 	socket.on("new-challenger-1", newChallenger => {
 		$('#challenger1').html(newChallenger);
-		myRoom = "room1";
+		myRoom = 1;
 		if(name == $('#challenger1').text() || name == $('#king1').text()){
 			$('#resultButtons').show();
 			$('#queue').html("");
@@ -258,7 +259,7 @@ $('#lose').on('click', function(){
 	});
 	socket.on("new-challenger-2", newChallenger => {
 		$('#challenger2').html(newChallenger);
-		myRoom = "room2";
+		myRoom = 2;
 		if(name == $('#challenger2').text() || name == $('#king2').text()){
 			$('#resultButtons').show();
 			$('#queue').html("");
@@ -269,7 +270,7 @@ $('#lose').on('click', function(){
 	});
 	socket.on("new-challenger-3", newChallenger => {
 		$('#challenger3').html(newChallenger);
-		myRoom = "room3";
+		myRoom = 3;
 		if(name == $('#challenger3').text() || name == $('#king3').text()){
 			$('#resultButtons').show();
 			$('#queue').html("");
@@ -280,7 +281,7 @@ $('#lose').on('click', function(){
 	});
 	socket.on("new-challenger-4", newChallenger => {
 		$('#challenger4').html(newChallenger);
-		myRoom = "room4";
+		myRoom = 4;
 		if(name == $('#challenger4').text() || name == $('#king4').text()){
 			$('#resultButtons').show();
 			$('#queue').html("");
