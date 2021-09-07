@@ -287,7 +287,7 @@ io.on('connection', (socket) => {
 		  fields[matchRoom-1].kingWins = 0;
 		  fields[matchRoom-1].challengerWins = 0;
 		  fields[matchRoom-1].streak++;
-		  io.emit('update-'+matchRoom+'-streak', fields[matchRoom-1].streak;
+		  io.emit('update-'+matchRoom+'-streak', fields[matchRoom-1].streak);
 		  io.to(fields[matchRoom-1].challenger).emit('leave-room');
 		  if(io.sockets.adapter.rooms[fields[matchRoom-1].challenger] != undefined){
 			  var partyMembers = io.sockets.adapter.rooms[fields[matchRoom-1].challenger].sockets;
