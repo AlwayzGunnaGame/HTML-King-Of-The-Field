@@ -272,6 +272,7 @@ io.on('connection', (socket) => {
 		  var partyMembers = io.sockets.adapter.rooms[fields[matchRoom-1].challenger].sockets;
 		  for(var member in partyMembers){
 			  var clientSocket = io.sockets.connected[member];
+			  clientSocket.leave(roomName);
 		  }
 		  if(fields[matchRoom-1].queue.length > 0){
 			  fields[matchRoom-1].challenger = fields[matchRoom-1].queue.shift();
@@ -293,7 +294,7 @@ io.on('connection', (socket) => {
 			  var partyMembers = io.sockets.adapter.rooms[fields[matchRoom-1].challenger].sockets;
 			  for(var member in partyMembers){
 				  var clientsSocket = io.sockets.connected[member];
-				  clientSocket.leave("room"+matchRoom);
+				  clientSocket.leave(roomName);
 			  }
 		  }
 		  if(fields[matchRoom-1].queue.length > 0){
@@ -525,6 +526,7 @@ io.on('connection', (socket) => {
   socket.on('challenger-win', matchRoom => {
 	  console.log("Challenger Win happened");
 	  fields[matchRoom-1].challengerWins++;
+	  var roomName = "room"+matchRoom;
 	  if(fields[matchRoom-1].challengerWins == 2 && fields[matchRoom-1].kingWins == 0){
 		  io.emit('challenger-win', "room"+matchRoom);
 		  fields[matchRoom-1].challengerWins = 0;
@@ -534,7 +536,7 @@ io.on('connection', (socket) => {
 		  var partyMembers = io.sockets.adapter.rooms[fields[matchRoom-1].king].sockets;
 		  for(var memeber in partyMembers){
 			  var clientSocket = io.sockets.connected[member];
-			  clientSocket.leave("room"+matchRoom);
+			  clientSocket.leave(roomName);
 		  }
 		  fields[matchRoom-1].king = fields[matchRoom-1].challenger;
 		  if(fields[matchRoom-1].queue.length > 0){
@@ -558,7 +560,7 @@ io.on('connection', (socket) => {
 			var partyMembers = io.sockets.adapter.rooms[fields[matchRoom-1].king].sockets;
 			for(var member in partyMembers){
 				var clientSocket = io.sockets.connected[member];
-				clientSocket.leave("room"+matchRoom);
+				clientSocket.leave(roomName);
 			}
 		  }
 		  fields[matchRoom-1].king = fields[matchRoom-1].challenger;
