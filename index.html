@@ -64,6 +64,31 @@ td.narrow {
         </div><!--/.nav-collapse -->
       </div>
     </nav>
+<div id="partyScreen" style="display:none;" class="text-center">
+<div class="col-md-6 col-md-offset-3">
+	<h2>My Party</h2>
+	<table class="table">
+	<tr>
+		<td id="partyMember1" class="narrow text-center"></td>
+	</tr>
+	<tr>
+		<td id="partyMember2" class="narrow text-center"></td>
+	</tr>
+	<tr>
+		<td id="partyMember3" class="narrow text-center"></td>
+	</tr>
+</table>
+<div id="inviteUI">
+	<label for="nickname">Enter User to Invite</label>
+    <input type="text" class="form-control" id="partyMemberInput"> 
+	<button type="button" id="invitePlayer" class="btn btn-default" data-toggle="tooltip" title="Invite">Invite</button>
+	<div id="inviteReceived" style="display:none;">
+		<p id="inviteMessage"></p>
+		<button type="button" id="accept" class="btn btn-sm btn-block">Accept</button><button type="button" id="decline" class="btn btn-sm btn-block">Decline</button>
+	</div>
+</div>
+</div>
+</div>
 <div class="container main-info">
 <div class="row">
   <div class="col-md-6 col-md-offset-3">
@@ -72,6 +97,12 @@ td.narrow {
     <input type="text" class="form-control" id="nickname"> 
 	<button type="button" id="submitName" class="btn btn-default" data-toggle="tooltip" title="Submit">Submit</button>
 </div>
+<div id="gameModeButtons" style="display:none;">
+<button type="button" id="theYard" class="btn btn-lg btn-block">The Yard</button>
+<button type="button" id="oneOnOne" class="btn btn-lg btn-block">One vs One</button>
+</div>
+
+
 
 <div id="platformButtons" style="display:none;"> 
 <button type="button" id="ps4" class="btn btn-default btn-lg" data-toggle="tooltip" data-placement="left" title="PS4">PS4</button><button type="button" id="ps5" class="btn btn-default btn-lg" data-toggle="tooltip" data-placement="top" title="PS5">PS5</button>
@@ -87,6 +118,32 @@ td.narrow {
 </div>
 <div id="fieldsTable" style="display:none;"> 
 <table class="table">
+	<tr>
+		<th class="text-right">Challenger</th>
+		<th> </th>
+		<th class="text-left">King</th>
+		<th>Streak</th>
+	</tr>
+	<tr>
+		<td id="currentChallenger1" class="wide text-right"></td>
+		<td class="narrow"> </td>
+		<td id="currentKing1" class="wide text-left"></td>
+		<td class="narrow"> </td>
+	</tr>
+	<tr>
+		<td id="currentChallenger2" class="wide text-right"></td>
+		<td class="narrow">vs</td>
+		<td id="currentKing2" class="wide text-left"></td>
+		<td id="currentStreak" class="narrow">0</td>
+	</tr>
+	<tr>
+		<td id="currentChallenger3" class="wide text-right"></td>
+		<td class="narrow"> </td>
+		<td id="currentKing3" class="wide text-left"></td>
+		<td class="narrow"> </td>
+	</tr>
+</table>
+<!-- <table class="table">
 	<tr>
 		<th class="text-right">Challenger</th>
 		<th> </th>
@@ -117,7 +174,7 @@ td.narrow {
 		<td id="king4" class="wide text-left"></td>
 		<td id="streak4" class="narrow">0</td>
 	</tr>
-</table>
+</table> -->
 <p id="queue" style="text-align:center;font-size:18px;"></p>
 </div>
   
@@ -127,6 +184,7 @@ td.narrow {
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <script src="/socket.io/socket.io.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
 <script>
 $(function(){
 //var userSessionID = decodeURIComponent(window.location.search.split("UserSessionID")[1].split("&")[0]);
@@ -134,35 +192,105 @@ var socket = io();
 var role = 0;
 var myRoom = 0;
 var name = "";
-$('#submitName').on('click', function(){
-	socket.emit("set-name", $('#nickname').val());
-	$('#platformButtons').show();
-	$('#username').hide();
+var mode = 0;
+var inviter = "";
+var isLeader = 1;
+
+var submitName = function(){
 	name = $('#nickname').val();
+	socket.emit("set-name", name);
+	$('#gameModeButtons').show();
+	//$('#platformButtons').show();
+	$('#username').hide();
+	Cookies.set('username', name, { expires: 7 });
+}
+
+if (Cookies.get('username')){
+	console.log(Cookies.get('username'));
+	$('#nickname').val(Cookies.get('username'));
+	submitName();
+}
+
+$('#submitName').on('click',submitName)
+
+$('#invitePlayer').on('click', function(){
+	socket.emit('invite-player', $('#partyMemberInput').val());
+	$('#partyMemberInput').val("");
+});
+
+$('#accept').on('click', function(){
+	socket.emit('accept-invite', inviter);
+	$('#inviteReceived').hide();
+	$('#inviteUI').hide();
+	isLeader = 0;
+});
+$('#decline').on('click', function(){
+	$('#inviteReceived').hide();
+});
+
+$('#theYard').on('click', function(){
+	mode = 1;
+	$('#partyScreen').show();
+	//$('#platformButtons').show();
+	$('#gameModeButtons').hide();
+	$('#partyMember1').html(name);
+})
+$('#oneOnOne').on('click', function(){
+	$('#platformButtons').show();
+	$('#gameModeButtons').hide();
 })
 $('#ps4').on('click', function(){
 	console.log("PS4 Button was Clicked");
-	socket.emit("request-room", 1);
 	$('#fieldsTable').show();
 	$('#platformButtons').hide();
+	$('#inviteUI').hide();
+	if(mode == 1){
+		socket.emit("request-room", 5);
+		myRoom = 5;
+	}else{
+		socket.emit("request-room", 1);
+		myRoom = 1;
+	}
+	
 })
 $('#ps5').on('click', function(){
 	console.log("PS5 Button was Clicked");
-	socket.emit("request-room", 2);
+	if(mode == 1){
+		socket.emit("request-room", 6);
+		myRoom = 6;
+	}else{
+		socket.emit("request-room", 2);
+		myRoom = 2;
+	}
 	$('#fieldsTable').show();
 	$('#platformButtons').hide();
+	$('#inviteUI').hide();
 })
 $('#XboxOne').on('click', function(){
 	console.log("Xbox One Button was Clicked");
-	socket.emit("request-room", 3);
+	if(mode == 1){
+		socket.emit("request-room", 7);
+		myRoom = 7;
+	}else{
+		socket.emit("request-room", 3);
+		myRoom = 3;
+	}
 	$('#fieldsTable').show();
 	$('#platformButtons').hide();
+	$('#inviteUI').hide();
 })
 $('#XboxNext').on('click', function(){
 	console.log("Xbox Series X/S Button was Clicked");
-	socket.emit("request-room", 4);
+	if(mode == 1){
+		socket.emit("request-room", 8);
+		myRoom = 8;
+	}else{
+		socket.emit("request-room", 4);
+		myRoom = 4;
+	}
 	$('#fieldsTable').show();
 	$('#platformButtons').hide();
+	$('#inviteUI').hide();
 })
 $('#win').on('click', function(){
 	console.log(role);
@@ -200,116 +328,612 @@ $('#lose').on('click', function(){
 		$('#streak4').html(fields[3].streak);
 	});
 
+	socket.on("room-info-challengers", roomData =>{
+		if(mode == 0){
+			$('#currentChallenger2').html(roomData);
+		}else{
+				if($('#currentChallenger1').text() == ""){
+					$('#currentChallenger1').html(roomData);
+				}else if($('#currentChallenger2').text() == ""){
+					$('#currentChallenger2').html(roomData);
+				} else if($('#currentChallenger3').text() == ""){
+					$('#currentChallenger3').html(roomData);
+				}
+			}
+	});
+	socket.on("room-info-kings", roomData =>{
+		if(mode == 0){
+			$('#currentKing2').html(roomData);
+			console.log(roomData, "Room Data");
+		}else{
+			if($('#currentKing1').text() == ""){
+				$('#currentKing1').html(roomData);
+			}else if($('#currentKing2').text() == ""){
+				$('#currentKing2').html(roomData);
+			}else if($('#currentKing3').text() == ""){
+				$('#currentKing3').html(roomData);
+			}
+		}
+		
+	});
+	
 	socket.on("invalid-name", () =>{
 		console.log("Invalid Name");
 		$('#platformButtons').hide();
+		$('#gameModeButtons').hide();
 		$('#username').show();
 	});
-		
+	
+	socket.on("get-invited", inviteSender => {
+		inviter = inviteSender;
+		$('#inviteReceived').show();
+		$('#inviteMessage').html(inviter + " has invited you to their party.");
+	});
+	
+	socket.on("join-party", joiningMember => {
+		if($('#partyMember2').text() == ""){
+			$('#partyMember2').html(joiningMember);
+		}else if($('#partyMember3').text() == ""){
+			$('#partyMember3').html(joiningMember);
+			if(isLeader == 1){
+				$('#platformButtons').show();
+			}
+		}
+	});
+	
 	socket.on("enable-buttons", () =>{
 		$('#resultButtons').show();
 	});
 	
 	socket.on("clear-kings", roomNum => {
 		$('#king'+roomNum).html("");
+		if(roomNum == myRoom){
+			$('#currentKing1').html("");
+			$('#currentKing2').html("");
+			$('#currentKing3').html("");
+		}
 	});
 	
 	socket.on("clear-challengers", roomNum => {
 		$('#challenger'+roomNum).html("");
+		if(roomNum == myRoom){
+			$('#currentChallenger1').html("");
+			$('#currentChallenger2').html("");
+			$('#currentChallenger3').html("");
+		}
 	});
 	
 	socket.on("new-king-1", newKing => {
 		$('#king1').html(newKing);
-		myRoom = 1;
 		if(newKing == name){
 			role = 1;
+			myRoom = 1;
+		}
+		if(myRoom == 1){
+			if(mode == 0){
+				$('#currentKing2').html(newKing);
+			}else{
+				if($('#currentKing1').text() == ""){
+					$('#currentKing1').html(newKing);
+				}else if($('#currentKing2').text() == ""){
+					$('#currentKing2').html(newKing);
+				}else if($('#currentKing3').text() == ""){
+					$('#currentKing3').html(newKing);
+				}
+			}
 		}
 	});
 	socket.on("new-king-2", newKing => {
 		$('#king2').html(newKing);
-		myRoom = 2;
 		if(newKing == name){
 			role = 1;
+			myRoom = 2;
+		}
+		if(myRoom == 2){
+			if(mode == 0){
+				$('#currentKing2').html(newKing);
+			}else{
+				if($('#currentKing1').text() == ""){
+					$('#currentKing1').html(newKing);
+				}else if($('#currentKing2').text() == ""){
+					$('#currentKing2').html(newKing);
+				}else if($('#currentKing3').text() == ""){
+					$('#currentKing3').html(newKing);
+				}
+			}
 		}
 	});
 	socket.on("new-king-3", newKing => {
 		$('#king3').html(newKing);
-		myRoom = 3;
 		if(newKing == name){
 			role = 1;
+			myRoom = 3;
+		}
+		if(myRoom == 3){
+			if(mode == 0){
+				$('#currentKing2').html(newKing);
+			}else{
+				if($('#currentKing1').text() == ""){
+					$('#currentKing1').html(newKing);
+				}else if($('#currentKing2').text() == ""){
+					$('#currentKing2').html(newKing);
+				}else if($('#currentKing3').text() == ""){
+					$('#currentKing3').html(newKing);
+				}
+			}
 		}
 	});
 	socket.on("new-king-4", newKing => {
 		$('#king4').html(newKing);
-		myRoom = 4;
 		if(newKing == name){
 			role = 1;
+			myRoom = 4;
+		}
+		if(myRoom == 4){
+			if(mode == 0){
+				$('#currentKing2').html(newKing);
+			}else{
+				if($('#currentKing1').text() == ""){
+					$('#currentKing1').html(newKing);
+				}else if($('#currentKing2').text() == ""){
+					$('#currentKing2').html(newKing);
+				}else if($('#currentKing3').text() == ""){
+					$('#currentKing3').html(newKing);
+				}
+			}
+		}
+	});
+	socket.on("new-king-5", newKing => {
+		$('#king1').html(newKing);
+		if(newKing == name){
+			role = 1;
+			myRoom = 5;
+		}
+		if(myRoom == 5){
+			if(mode == 0){
+				$('#currentKing2').html(newKing);
+			}else{
+				if($('#currentKing1').text() == ""){
+					$('#currentKing1').html(newKing);
+				}else if($('#currentKing2').text() == ""){
+					$('#currentKing2').html(newKing);
+				}else if($('#currentKing3').text() == ""){
+					$('#currentKing3').html(newKing);
+				}
+			}
+		}
+	});
+	socket.on("new-king-6", newKing => {
+		$('#king2').html(newKing);
+		if(newKing == name){
+			role = 1;
+			myRoom = 6;
+		}
+		if(myRoom == 6){
+			if(mode == 0){
+				$('#currentKing2').html(newKing);
+			}else{
+				if($('#currentKing1').text() == ""){
+					$('#currentKing1').html(newKing);
+				}else if($('#currentKing2').text() == ""){
+					$('#currentKing2').html(newKing);
+				}else if($('#currentKing3').text() == ""){
+					$('#currentKing3').html(newKing);
+				}
+			}
+		}
+	});
+	socket.on("new-king-7", newKing => {
+		$('#king3').html(newKing);
+		if(newKing == name){
+			role = 1;
+			myRoom = 7;
+		}
+		if(myRoom == 7){
+			if(mode == 0){
+				$('#currentKing2').html(newKing);
+			}else{
+				if($('#currentKing1').text() == ""){
+					$('#currentKing1').html(newKing);
+				}else if($('#currentKing2').text() == ""){
+					$('#currentKing2').html(newKing);
+				}else if($('#currentKing3').text() == ""){
+					$('#currentKing3').html(newKing);
+				}
+			}
+		}
+	});
+	socket.on("new-king-8", newKing => {
+		$('#king4').html(newKing);
+		if(newKing == name){
+			role = 1;
+			myRoom = 8;
+		}
+		if(myRoom == 8){
+			if(mode == 0){
+				$('#currentKing2').html(newKing);
+			}else{
+				if($('#currentKing1').text() == ""){
+					$('#currentKing1').html(newKing);
+				}else if($('#currentKing2').text() == ""){
+					$('#currentKing2').html(newKing);
+				}else if($('#currentKing3').text() == ""){
+					$('#currentKing3').html(newKing);
+				}
+			}
 		}
 	});
 	socket.on("new-challenger-1", newChallenger => {
 		$('#challenger1').html(newChallenger);
-		myRoom = 1;
-		if(name == $('#challenger1').text() || name == $('#king1').text()){
-			$('#resultButtons').show();
-			$('#queue').html("");
-		}
 		if(newChallenger == name){
-			role = 2; 
+			role = 2;
+			myRoom = 1;
 		}
+		if(myRoom == 1){
+			if(mode == 0){
+				$('#currentChallenger2').html(newChallenger);
+				if($('#currentChallenger2').text() == name || $('#currentKing2').text() == name){
+					$('#resultButtons').show();
+					$('#queue').html("");
+				}
+			}else{
+				if($('#currentChallenger1').text() == ""){
+					$('#currentChallenger1').html(newChallenger);
+					if($('#currentChallenger1').text() == name || $('#currentKing1').text() == name){
+						$('#queue').html("");
+						if(isLeader == 1){
+							$('#resultButtons').show();
+						}
+					}
+				}else if($('#currentChallenger2').text() == ""){
+					$('#currentChallenger2').html(newChallenger);
+					if($('#currentChallenger2').text() == name || $('#currentKing2').text() == name){
+						//$('#resultButtons').show();
+						$('#queue').html("");
+					}
+				} else if($('#currentChallenger3').text() == ""){
+					$('#currentChallenger3').html(newChallenger);
+					if($('#currentChallenger3').text() == name || $('#currentKing3').text() == name){
+						//$('#resultButtons').show();
+						$('#queue').html("");
+					}
+				}else{
+					$('#resultButtons').hide();
+				}
+			}
+		}
+		//if(name == $('#challenger1').text() || name == $('#king1').text()){
+			//$('#resultButtons').show();
+			//$('#queue').html("");
 	});
 	socket.on("new-challenger-2", newChallenger => {
 		$('#challenger2').html(newChallenger);
-		myRoom = 2;
-		if(name == $('#challenger2').text() || name == $('#king2').text()){
-			$('#resultButtons').show();
-			$('#queue').html("");
-		}
 		if(newChallenger == name){
-			role = 2; 
+			role = 2;
+			myRoom = 2;
+		}
+		if(myRoom == 2){
+			if(mode == 0){
+				$('#currentChallenger2').html(newChallenger);
+				if($('#currentChallenger2').text() == name || $('#currentKing2').text() == name){
+					$('#resultButtons').show();
+					$('#queue').html("");
+				}
+			}else{
+				if($('#currentChallenger1').text() == ""){
+					$('#currentChallenger1').html(newChallenger);
+					if($('#currentChallenger1').text() == name || $('#currentKing1').text() == name){
+						if(isLeader == 1){
+							$('#resultButtons').show();
+						}
+						$('#queue').html("");
+					}
+				}else if($('#currentChallenger2').text() == ""){
+					$('#currentChallenger2').html(newChallenger);
+					if($('#currentChallenger2').text() == name || $('#currentKing2').text() == name){
+						//$('#resultButtons').show();
+						$('#queue').html("");
+					}
+				} else if($('#currentChallenger3').text() == ""){
+					$('#currentChallenger3').html(newChallenger);
+					if($('#currentChallenger3').text() == name || $('#currentKing3').text() == name){
+						//$('#resultButtons').show();
+						$('#queue').html("");
+					}
+				}else{
+					$('#resultButtons').hide();
+				}
+			}
 		}
 	});
 	socket.on("new-challenger-3", newChallenger => {
 		$('#challenger3').html(newChallenger);
-		myRoom = 3;
-		if(name == $('#challenger3').text() || name == $('#king3').text()){
-			$('#resultButtons').show();
-			$('#queue').html("");
-		}
 		if(newChallenger == name){
-			role = 2; 
+			role = 2;
+			myRoom = 3;
+		}
+		if(myRoom == 3){
+			if(mode == 0){
+				$('#currentChallenger2').html(newChallenger);
+				if($('#currentChallenger2').text() == name || $('#currentKing2').text() == name){
+					$('#resultButtons').show();
+					$('#queue').html("");
+				}
+			}else{
+				if($('#currentChallenger1').text() == ""){
+					$('#currentChallenger1').html(newChallenger);
+					if($('#currentChallenger1').text() == name || $('#currentKing1').text() == name){
+						if(isLeader == 1){
+							$('#resultButtons').show();
+						}
+						$('#queue').html("");
+					}
+				}else if($('#currentChallenger2').text() == ""){
+					$('#currentChallenger2').html(newChallenger);
+					if($('#currentChallenger2').text() == name || $('#currentKing2').text() == name){
+						//$('#resultButtons').show();
+						$('#queue').html("");
+					}
+				} else if($('#currentChallenger3').text() == ""){
+					$('#currentChallenger3').html(newChallenger);
+					if($('#currentChallenger3').text() == name || $('#currentKing3').text() == name){
+						//$('#resultButtons').show();
+						$('#queue').html("");
+					}
+				}else{
+					$('#resultButtons').hide();
+				}
+			}
 		}
 	});
 	socket.on("new-challenger-4", newChallenger => {
 		$('#challenger4').html(newChallenger);
-		myRoom = 4;
-		if(name == $('#challenger4').text() || name == $('#king4').text()){
-			$('#resultButtons').show();
-			$('#queue').html("");
-		}
 		if(newChallenger == name){
-			role = 2; 
+			role = 2;
+			myRoom = 4;
+		}
+		if(myRoom == 4){
+			if(mode == 0){
+				$('#currentChallenger2').html(newChallenger);
+				if($('#currentChallenger2').text() == name || $('#currentKing2').text() == name){
+					$('#resultButtons').show();
+					$('#queue').html("");
+				}
+			}else{
+				if($('#currentChallenger1').text() == ""){
+					$('#currentChallenger1').html(newChallenger);
+					if($('#currentChallenger1').text() == name || $('#currentKing1').text() == name){
+						if(isLeader == 1){
+							$('#resultButtons').show();
+						}
+						$('#queue').html("");
+					}
+				}else if($('#currentChallenger2').text() == ""){
+					$('#currentChallenger2').html(newChallenger);
+					if($('#currentChallenger2').text() == name || $('#currentKing2').text() == name){
+						//$('#resultButtons').show();
+						$('#queue').html("");
+					}
+				} else if($('#currentChallenger3').text() == ""){
+					$('#currentChallenger3').html(newChallenger);
+					if($('#currentChallenger3').text() == name || $('#currentKing3').text() == name){
+						//$('#resultButtons').show();
+						$('#queue').html("");
+					}
+				}else{
+					$('#resultButtons').hide();
+				}
+			}
+		}
+	});
+	socket.on("new-challenger-5", newChallenger => {
+		$('#challenger1').html(newChallenger);
+		if(newChallenger == name){
+			role = 2;
+			myRoom = 5;
+		}
+		if(myRoom == 5){
+			if(mode == 0){
+				$('#currentChallenger2').html(newChallenger);
+				if($('#currentChallenger2').text() == name || $('#currentKing2').text() == name){
+					$('#resultButtons').show();
+					$('#queue').html("");
+				}
+			}else{
+				if($('#currentChallenger1').text() == ""){
+					$('#currentChallenger1').html(newChallenger);
+					console.log(newChallenger, " Spot 1");
+					if($('#currentChallenger1').text() == name || $('#currentKing1').text() == name){
+						if(isLeader == 1){
+							$('#resultButtons').show();
+						}
+						$('#queue').html("");
+					}
+				}else if($('#currentChallenger2').text() == ""){
+					$('#currentChallenger2').html(newChallenger);
+					console.log(newChallenger, " Spot 2");
+					if($('#currentChallenger2').text() == name || $('#currentKing2').text() == name){
+						//$('#resultButtons').show();
+						$('#queue').html("");
+					}
+				} else if($('#currentChallenger3').text() == ""){
+					$('#currentChallenger3').html(newChallenger);
+					console.log(newChallenger, " Spot 3");
+					if($('#currentChallenger3').text() == name || $('#currentKing3').text() == name){
+						//$('#resultButtons').show();
+						$('#queue').html("");
+					}
+				}else{
+					$('#resultButtons').hide();
+				}
+			}
+		}
+	});
+	socket.on("new-challenger-6", newChallenger => {
+		$('#challenger2').html(newChallenger);
+		if(newChallenger == name){
+			role = 2;
+			myRoom = 6;
+		}
+		if(myRoom == 6){
+			if(mode == 0){
+				$('#currentChallenger2').html(newChallenger);
+				if($('#currentChallenger2').text() == name || $('#currentKing2').text() == name){
+					if(isLeader == 1){
+							$('#resultButtons').show();
+						}
+					$('#queue').html("");
+				}
+			}else{
+				if($('#currentChallenger1').text() == ""){
+					$('#currentChallenger1').html(newChallenger);
+					if($('#currentChallenger1').text() == name || $('#currentKing1').text() == name){
+						$('#resultButtons').show();
+						$('#queue').html("");
+					}
+				}else if($('#currentChallenger2').text() == ""){
+					$('#currentChallenger2').html(newChallenger);
+					if($('#currentChallenger2').text() == name || $('#currentKing2').text() == name){
+						//$('#resultButtons').show();
+						$('#queue').html("");
+					}
+				} else if($('#currentChallenger3').text() == ""){
+					$('#currentChallenger3').html(newChallenger);
+					if($('#currentChallenger3').text() == name || $('#currentKing3').text() == name){
+						//$('#resultButtons').show();
+						$('#queue').html("");
+					}
+				}else{
+					$('#resultButtons').hide();
+				}
+			}
+		}
+	});
+	socket.on("new-challenger-7", newChallenger => {
+		$('#challenger3').html(newChallenger);
+		if(newChallenger == name){
+			role = 2;
+			myRoom = 7;
+		}
+		if(myRoom == 7){
+			if(mode == 0){
+				$('#currentChallenger2').html(newChallenger);
+				if($('#currentChallenger2').text() == name || $('#currentKing2').text() == name){
+					$('#resultButtons').show();
+					$('#queue').html("");
+				}
+			}else{
+				if($('#currentChallenger1').text() == ""){
+					$('#currentChallenger1').html(newChallenger);
+					if($('#currentChallenger1').text() == name || $('#currentKing1').text() == name){
+						if(isLeader == 1){
+							$('#resultButtons').show();
+						}
+						$('#queue').html("");
+					}
+				}else if($('#currentChallenger2').text() == ""){
+					$('#currentChallenger2').html(newChallenger);
+					if($('#currentChallenger2').text() == name || $('#currentKing2').text() == name){
+						//$('#resultButtons').show();
+						$('#queue').html("");
+					}
+				} else if($('#currentChallenger3').text() == ""){
+					$('#currentChallenger3').html(newChallenger);
+					if($('#currentChallenger3').text() == name || $('#currentKing3').text() == name){
+						//$('#resultButtons').show();
+						$('#queue').html("");
+					}
+				}else{
+					$('#resultButtons').hide();
+				}
+			}
+		}
+	});
+	socket.on("new-challenger-8", newChallenger => {
+		$('#challenger4').html(newChallenger);
+		if(newChallenger == name){
+			role = 2;
+			myRoom = 8;
+		}
+		if(myRoom == 8){
+			if(mode == 0){
+				$('#currentChallenger2').html(newChallenger);
+				if($('#currentChallenger2').text() == name || $('#currentKing2').text() == name){
+					$('#resultButtons').show();
+					$('#queue').html("");
+				}
+			}else{
+				if($('#currentChallenger1').text() == ""){
+					$('#currentChallenger1').html(newChallenger);
+					if($('#currentChallenger1').text() == name || $('#currentKing1').text() == name){
+						if(isLeader == 1){
+							$('#resultButtons').show();
+						}
+						$('#queue').html("");
+					}
+				}else if($('#currentChallenger2').text() == ""){
+					$('#currentChallenger2').html(newChallenger);
+					if($('#currentChallenger2').text() == name || $('#currentKing2').text() == name){
+						//$('#resultButtons').show();
+						$('#queue').html("");
+					}
+				} else if($('#currentChallenger3').text() == ""){
+					$('#currentChallenger3').html(newChallenger);
+					if($('#currentChallenger3').text() == name || $('#currentKing3').text() == name){
+						//$('#resultButtons').show();
+						$('#queue').html("");
+					}
+				}else{
+					$('#resultButtons').hide();
+				}
+			}
 		}
 	});
 	
 	socket.on("update-1-streak", streakLength =>{
-		$('#streak1').html(streakLength);
+	if(myRoom == 1)
+		$('#currentStreak').html(streakLength);
 	});
 	socket.on("update-2-streak", streakLength =>{
-		$('#streak2').html(streakLength);
+	if(myRoom == 2)
+		$('#currentStreak').html(streakLength);
 	});
 	socket.on("update-3-streak", streakLength =>{
-		$('#streak3').html(streakLength);
+	if(myRoom == 3)
+		$('#currentStreak').html(streakLength);
 	});
 	socket.on("update-4-streak", streakLength =>{
-		$('#streak4').html(streakLength);
+	if(myRoom == 4)
+		$('#currentStreak').html(streakLength);
+	});
+	socket.on("update-5-streak", streakLength =>{
+	if(myRoom == 5)
+		$('#currentStreak').html(streakLength);
+	});
+	socket.on("update-6-streak", streakLength =>{
+	if(myRoom == 6)
+		$('#currentStreak').html(streakLength);
+	});
+	socket.on("update-7-streak", streakLength =>{
+	if(myRoom == 7)
+		$('#currentStreak').html(streakLength);
+	});
+	socket.on("update-8-streak", streakLength =>{
+	if(myRoom == 8)
+		$('#currentStreak').html(streakLength);
 	});
 	
 	socket.on("update-queue", queuePos =>{
+		$('#resultButtons').hide();
 		console.log("There are ", queuePos, " people in front of you");
 		$('#queue').html("There are " + queuePos + " people in front of you.");
 		if(queuePos == 1){
 			$('#queue').html("There is " + queuePos + " person in front of you.");
 		}
+	});
+	
+	socket.on("reveal-table", () => {
+		$('#fieldsTable').show();
 	});
 	
 	socket.on("free-win", () =>{
@@ -322,7 +946,11 @@ $('#lose').on('click', function(){
 	});
 	
 	socket.on("leave-room", () =>{
+	console.log("We Left");
+	role = 0;
+	if(isLeader == 1){
 		socket.emit("request-room", myRoom);
+	}
 	});
 });
  </script>

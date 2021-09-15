@@ -8,58 +8,54 @@ const io = require('socket.io')(server,{
   });
 
 var clients = {};
+var usernameList = [];
 
-var fields = [{
-  queue:[],
-  streak:0,
-  king:"",
-  challenger:"",
-  kingWins:0,
-  challengerWins:0
-},{
-  queue:[],
-  streak:0,
-  king:"",
-  challenger:"",
-  kingWins:0,
-  challengerWins:0
-},{
-  queue:[],
-  streak:0,
-  king:"",
-  challenger:"",
-  kingWins:0,
-  challengerWins:0
-},{
-  queue:[],
-  streak:0,
-  king:"",
-  challenger:"",
-  kingWins:0,
-  challengerWins:0
-}]
+var newField = function() {
+	return {
+	  queue:[],
+	  streak:0,
+	  kings:[],
+	  challengers:[],
+	  kingWins:0,
+	  challengerWins:0
+	};
+}
+
+var fields = [];
+for (var i = 0; i < 8; i++) {
+  fields.push(newField());
+}
+//console.log(fields);
 
 let room = 0;
 let player1Rdy = 0;
 let player2Rdy = 0;
+
+
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
 const {userConnected, connectedUsers, initializeChoices, moves, makeMove, choices} = require("./util/users");
-const {createRoom, joinRoom, exitRoom, rooms} = require("./util/rooms");
+//const {createRoom, joinRoom, exitRoom, rooms} = require("./util/rooms");
 
-createRoom("room1");
+/* createRoom("room1");
 createRoom("room2");
 createRoom("room3");
 createRoom("room4");
+createRoom("room5");
+createRoom("room6");
+createRoom("room7");
+createRoom("room8"); */
+
 
 io.on('connection', (socket) => {
   console.log('a user connected');
   socket.emit("full-field", fields);
+  
   socket.on("create-room", (roomId) =>{
-    if(rooms[roomId]){
+    /* if(rooms[roomId]){
 	const error = "This room already exists";
 	socket.emit("display-error", error);
     }else{
@@ -69,23 +65,26 @@ io.on('connection', (socket) => {
 	socket.emit("room-created", roomId);
 	socket.emit("player-1-connected");
 	socket.join(roomId);
-	room = roomId;
-	console.log('room created ', roomId);
-    }
+	room = roomId; */
+	//console.log('room created ', roomId);
+    //}
   })
 
   socket.on("set-name", nickname => {
-	  if(rooms[nickname]){
+	  if(usernameList.includes(nickname)){
 		  socket.emit('invalid-name');
 	  }else{
 		socket.username = nickname;
 		clients[nickname] = socket;
-		createRoom(socket.username);
+		usernameList.push(nickname);
+		console.log(usernameList);
+		//createRoom(socket.username);
 		socket.join(socket.username);
 		socket.roomId = socket.username;
 		FullUpdate();
 		console.log('Welcome ', socket.username);
 		console.log('There are now ', _.size(clients), ' players online!');
+		console.log(socket.rooms, " Room Info");
 	  }
   });
 
@@ -100,30 +99,53 @@ io.on('connection', (socket) => {
 
   var UpdateKings = function(roomNum){
 	  io.emit('clear-kings', roomNum);
-	  var roomKing = fields[roomNum-1].king;
-	  if(roomKing != ""){
-		  io.emit("new-king-" + roomNum, roomKing);
-		  console.log(roomKing, " is now the king of room " + roomNum);
-	  }
+	  console.log(fields[roomNum - 1].kings);
+		  for(var j in fields[roomNum - 1].kings){
+			  var newKing = fields[roomNum - 1].kings[j];
+			io.emit("new-king-" + roomNum, newKing);
+			console.log(newKing, " is now the king of room " + roomNum);
+		  }
   }
 
   var UpdateChallengers = function(roomNum){
 	  io.emit('clear-challengers', roomNum);
-	var roomChallenger = fields[roomNum-1].challenger;
-	if (roomChallenger != "") {
-		io.emit("new-challenger-" + roomNum, roomChallenger);
-		console.log(roomChallenger," is now the challenger of room " + roomNum);
-	}
+	  console.log(fields[roomNum - 1].challengers);
+		for(var j in fields[roomNum - 1].challengers){
+			  var newChallenger = fields[roomNum - 1].challengers[j];
+			io.emit("new-challenger-" + roomNum, newChallenger);
+			console.log(newChallenger, " is now the challenger of room " + roomNum);
+		  }
+  }
+  
+  var JoinRoomUpdate = function(roomNum){
+	  if(fields[roomNum-1].kings != null){
+		  for(var j in fields[roomNum - 1].kings){
+			  var newKing = fields[roomNum - 1].kings[j];
+			io.in("room"+roomNum).emit("room-info-kings", newKing);
+			console.log(newKing, " is now the king of room " + roomNum);
+		  }
+	  }
+	  if(fields[roomNum-1].challengers != null){
+		  for(var j in fields[roomNum - 1].challengers){
+			  var newChallenger = fields[roomNum - 1].challengers[j];
+			  io.in("room"+roomNum).emit("room-info-challengers", newChallenger);
+			  console.log(newChallenger, " info being shared");
+		  }
+	  }
   }
 
   
   socket.on('invite-player', invitedPlayer => {
+	  if(socket.roomId != socket.username){
+		  console.log("You are not the leader");
+		  return;
+	  }
     console.log(socket.username, " invited ", invitedPlayer);
-    if(!rooms[socket.username]){
+   /*  if(!rooms[socket.username]){
       createRoom(socket.username);
       socket.join(socket.username);
       socket.roomId = socket.username;
-    }
+    } */
 
     if(io.sockets.adapter.rooms[socket.username].length >= 3){
       console.log("Room is full invite not sent!")
@@ -131,14 +153,14 @@ io.on('connection', (socket) => {
     }
     
     console.log(io.sockets.adapter.rooms[socket.username].length);
-    clients[invitedPlayer].emit('get-invited', socket.username);
+	if(clients[invitedPlayer] != undefined){
+		clients[invitedPlayer].emit('get-invited', socket.username);
+	}
   })
   
   socket.on('accept-invite', inviteSender => {
     console.log(socket.username, " accepted ", inviteSender);
-    if(rooms[socket.username]){
-      socket.leave(socket.username);
-    }
+    socket.leave(socket.username);
     if(io.sockets.adapter.rooms[inviteSender].length >= 3){
       console.log("Could not join room. Room Full.");
       return;
@@ -157,27 +179,36 @@ io.on('connection', (socket) => {
   socket.on('request-room', requestedRoom => {
 	  console.log(socket.username, " wants to join room " + requestedRoom);
 	  var roomName = "room"+requestedRoom;
-    //console.log(socket.username, " wants to join ", requestedRoom);
-    //var partyMembers = io.sockets.adapter.rooms[socket.username].sockets;
-    //for(var member in partyMembers){
-    //  var clientSocket = io.sockets.connected[member];
-	socket.join(roomName);
+      var partyMembers = io.sockets.adapter.rooms[socket.username].sockets;
+      for(var member in partyMembers){
+        var clientSocket = io.sockets.connected[member];
+		clientSocket.join(roomName);
+		io.to(clientSocket.username).emit('reveal-table');
       //socket.join(requestedRoom);
-    //}
-	
-	if(fields[requestedRoom-1].king == ""){
-		fields[requestedRoom-1].king = socket.username;
+	  }
+	if(fields[requestedRoom - 1].kings.length === 0){
+		for(var j in partyMembers){
+			const clientSocket = io.sockets.connected[j];
+			fields[requestedRoom - 1].kings.push(clientSocket.username);
+		}
+		console.log(fields[requestedRoom - 1].kings, " List of Kings"); 
 		UpdateKings(requestedRoom);
-	}else if(fields[requestedRoom-1].challenger == ""){
-		fields[requestedRoom-1].challenger = socket.username;
+	}else if(fields[requestedRoom - 1].challengers.length === 0){
+		for(var j in partyMembers){
+			const clientSocket = io.sockets.connected[j];
+			fields[requestedRoom - 1].challengers.push(clientSocket.username);
+		}
+		console.log(fields[requestedRoom - 1].challengers, " List of challengers"); 
 		UpdateChallengers(requestedRoom);
 	}else{
-		fields[requestedRoom-1].queue.push(socket.username);
-		for(let i = 0; i < fields[requestedRoom-1].queue.length; i++){
-			io.to(fields[requestedRoom-1].queue[i]).emit('update-queue', i);
+		fields[requestedRoom - 1].queue.push(socket.username);
+		for(let i = 0; i < fields[requestedRoom - 1].queue.length; i++){
+			io.to(fields[requestedRoom - 1].queue[i]).emit('update-queue', i);
 		}
 	}
+	//io.in(socket.username).emit('room-info', fields[requestedRoom - 1]);
 	clients[socket.username].emit('join-room', roomName);
+	JoinRoomUpdate(requestedRoom);
   })
 
   socket.on('king-win', matchRoom => {
@@ -189,20 +220,25 @@ io.on('connection', (socket) => {
 		  fields[matchRoom - 1].kingWins = 0;
 		  fields[matchRoom - 1].streak++;
 		  io.emit('update-'+matchRoom+'-streak', fields[matchRoom - 1].streak);
-		  io.to(fields[matchRoom - 1].challenger).emit('leave-room');
-		  var partyMembers = io.sockets.adapter.rooms[fields[matchRoom - 1].challenger].sockets;
-		  for(var member in partyMembers){
-			  var clientSocket = io.sockets.connected[member];
-			  console.log(clientSocket);
-			  clientSocket.leave(roomName);
-		  }
+		  console.log(fields[matchRoom - 1].challengers, " This is the list before we grab the first index");
+			var challenger = fields[matchRoom - 1].challengers[0];
+			io.to(challenger).emit('leave-room');
 		  if(fields[matchRoom - 1].queue.length > 0){
-			  fields[matchRoom - 1].challenger = fields[matchRoom - 1].queue.shift();
+			  var nextChallenger = fields[matchRoom - 1].queue.shift();
+			  var partyMembers = io.sockets.adapter.rooms[nextChallenger].sockets;
+			  fields[matchRoom - 1].challengers = [];
+			  for(var j in partyMembers){
+				const clientSocket = io.sockets.connected[j];
+				fields[matchRoom - 1].challengers.push(clientSocket.username);
+			}
+			console.log(fields[matchRoom - 1].challengers, " List of challengers"); 
+			UpdateChallengers(matchRoom);
+			  /* fields[matchRoom - 1].challengers.push(fields[matchRoom - 1].queue.shift());
 			  for(let i = 0; i < fields[matchRoom - 1].queue.length; i++){
 				  io.to(fields[matchRoom - 1].queue[i]).emit('update-queue', i);
-			  }
+			  } */
 		  }else{
-			  fields[matchRoom - 1].challenger = "";
+			  fields[matchRoom - 1].challengers = [];
 		  }
 		  UpdateChallengers(matchRoom);
 	  }else if(fields[matchRoom - 1].kingWins >= 3){
@@ -211,26 +247,24 @@ io.on('connection', (socket) => {
 		  fields[matchRoom - 1].challengerWins = 0;
 		  fields[matchRoom - 1].streak++;
 		  io.emit('update-'+matchRoom+'-streak', fields[matchRoom - 1].streak);
-		  io.to(fields[matchRoom - 1].challenger).emit('leave-room');
-		  if(io.sockets.adapter.rooms[fields[matchRoom - 1].challenger] != undefined){
-			  var partyMembers = io.sockets.adapter.rooms[fields[matchRoom - 1].challenger].sockets;
-			  for(var member in partyMembers){
-				  var clientSocket = io.sockets.connected[member];
-				  clientSocket.leave(roomName);
-			  }
-		  }
+			var challenger = fields[matchRoom - 1].challengers[0];
+			io.to(challenger).emit('leave-room');
 		  if(fields[matchRoom - 1].queue.length > 0){
-			  fields[matchRoom - 1].challenger = fields[matchRoom - 1].queue.shift();
-			  for(let i = 0; i < fields[0].queue.length; i++){
-				  io.to(fields[0].queue[i]).emit('update-queue', i);
-			  }
+			  var nextChallenger = fields[matchRoom - 1].queue.shift();
+			  var partyMembers = io.sockets.adapter.rooms[nextChallenger].sockets;
+			  fields[matchRoom - 1].challengers = [];
+			  for(var j in partyMembers){
+				const clientSocket = io.sockets.connected[j];
+				fields[matchRoom - 1].challengers.push(clientSocket.username);
+			}
+			console.log(fields[matchRoom - 1].challengers, " List of challengers"); 
+			UpdateChallengers(matchRoom);
 		  }else{
-			  fields[matchRoom - 1].challenger = "";
+			  fields[matchRoom - 1].challengers = [];
 		  }
 		  UpdateChallengers(matchRoom);
 	  }else if(fields[matchRoom - 1].kingWins == fields[matchRoom - 1].challengerWins){
-		  io.to(fields[matchRoom - 1].king).emit('enable-buttons');
-		  io.to(fields[matchRoom - 1].challenger).emit('enable-buttons');
+		  io.in("room"+matchRoom).emit('enable-buttons');
 	  }
     
   });
@@ -244,20 +278,21 @@ io.on('connection', (socket) => {
 		  fields[matchRoom - 1].challengerWins = 0;
 		  fields[matchRoom - 1].streak = 1;
 		  io.emit('update-'+matchRoom+'-streak', fields[matchRoom - 1].streak);
-		  io.to(fields[matchRoom - 1].king).emit('leave-room');
-		  var partyMembers = io.sockets.adapter.rooms[fields[matchRoom - 1].king].sockets;
-		  for(var member in partyMembers){
-			  var clientSocket = io.sockets.connected[member];
-			  clientSocket.leave(roomName);
-		  }
-		  fields[matchRoom - 1].king = fields[matchRoom - 1].challenger;
+			var king = fields[matchRoom - 1].kings[0];
+			io.to(king).emit('leave-room');
+		  fields[matchRoom - 1].kings = fields[matchRoom - 1].challengers;
 		  if(fields[matchRoom - 1].queue.length > 0){
-			  fields[matchRoom - 1].challenger = fields[matchRoom - 1].queue.shift();
-			  for(let i = 0; i < fields[matchRoom - 1].queue.length; i++){
-				  io.to(fields[matchRoom - 1].queue[i]).emit('update-queue', i);
-			  }
+			  var nextChallenger = fields[matchRoom - 1].queue.shift();
+			  var partyMembers = io.sockets.adapter.rooms[nextChallenger].sockets;
+			  fields[matchRoom - 1].challengers = [];
+			  for(var j in partyMembers){
+				const clientSocket = io.sockets.connected[j];
+				fields[matchRoom - 1].challengers.push(clientSocket.username);
+			}
+			console.log(fields[matchRoom - 1].challengers, " List of challengers"); 
+			UpdateChallengers(matchRoom);
 		  }else{
-			  fields[matchRoom - 1].challenger = "";
+			  fields[matchRoom - 1].challengers = [];
 		  }
 		  UpdateKings(matchRoom);
 		  UpdateChallengers(matchRoom);
@@ -267,112 +302,59 @@ io.on('connection', (socket) => {
 		  fields[matchRoom - 1].kingWins = 0;
 		  fields[matchRoom - 1].streak++;
 		  io.emit('update-'+matchRoom+'-streak', fields[matchRoom - 1].streak);
-		  io.to(fields[matchRoom - 1].king).emit('leave-room');
-		  if(io.sockets.adapter.rooms[fields[matchRoom - 1].king] != undefined){
-			  var partyMembers = io.sockets.adapter.rooms[fields[matchRoom - 1].king].sockets;
-			  for(var member in partyMembers){
-				  var clientSocket = io.sockets.connected[member];
-				  clientSocket.leave(roomName);
-			  }
-		  }
-		  fields[matchRoom - 1].king = fields[matchRoom - 1].challenger;
+			var king = fields[matchRoom - 1].kings[0];
+			io.to(king).emit('leave-room');
+		  fields[matchRoom - 1].kings = fields[matchRoom - 1].challengers;
 		  if(fields[matchRoom - 1].queue.length > 0){
-			  fields[matchRoom - 1].challenger = fields[matchRoom - 1].queue.shift();
-			  for(let i = 0; i < fields[0].queue.length; i++){
-				  io.to(fields[0].queue[i]).emit('update-queue', i);
-			  }
+			  var nextChallenger = fields[matchRoom - 1].queue.shift();
+			  var partyMembers = io.sockets.adapter.rooms[nextChallenger].sockets;
+			  fields[matchRoom - 1].challengers = [];
+			  for(var j in partyMembers){
+				const clientSocket = io.sockets.connected[j];
+				fields[matchRoom - 1].challengers.push(clientSocket.username);
+			}
+			console.log(fields[matchRoom - 1].challengers, " List of challengers"); 
+			UpdateChallengers(matchRoom);
 		  }else{
-			  fields[matchRoom - 1].challenger = "";
+			  fields[matchRoom - 1].challengers = [];
 		  }
 		  UpdateKings(matchRoom);
 		  UpdateChallengers(matchRoom);
 	  }else if(fields[matchRoom - 1].kingWins == fields[matchRoom - 1].challengerWins){
-		  io.to(fields[matchRoom - 1].king).emit('enable-buttons');
-		  io.to(fields[matchRoom - 1].challenger).emit('enable-buttons');
+		  io.in("room"+matchRoom).emit('enable-buttons');
 	  }
 	  
     
   });
   
   socket.on('disconnect', () => {
-    if(fields[0].queue.includes(socket.username)){
-		var index = fields[0].queue.indexOf(socket.username);
-		fields[0].queue.splice(index, 1);
-		for(let i = 0; i < fields[0].queue.length; i++){
-				io.to(fields[0].queue[i]).emit('update-queue', i);
+	  //return; 
+	  for(var j in fields){
+		  var field = fields[j];
+		if(field.queue.indexOf(socket.username) !== -1){
+			var index = field.queue.indexOf(socket.username);
+			field.queue.splice(index, 1);
+			for(let i = 0; i < field.queue.length; i++){
+				io.to(field.queue[i]).emit('update-queue', i);
 			}
-	}else if(fields[1].queue.includes(socket.username)){
-		var index = fields[1].queue.indexOf(socket.username);
-		fields[1].queue.splice(index, 1);
-		for(let i = 0; i < fields[1].queue.length; i++){
-				io.to(fields[1].queue[i]).emit('update-queue', i);
+		}else if(field.challengers.indexOf(socket.username) !== -1){
+			field.kingWins = 3;
+			io.to(field.kings[0]).emit('free-win');
+		}else if(field.kings.indexOf(socket.username) !==-1){
+			if(field.challengers.length > 0){
+				field.challengerWins = 3;
+				io.to(field.challengers[0]).emit('free-win');
+			}else{
+				field.kings = [];
+				field.streak = 0;
+				UpdateKings(j + 1);
 			}
-	}else if (fields[2].queue.includes(socket.username)){
-		var index = fields[0].queue.indexOf(socket.username);
-		fields[2].queue.splice(index, 1);
-		for(let i = 0; i < fields[2].queue.length; i++){
-				io.to(fields[2].queue[i]).emit('update-queue', i);
-			}
-	}else if(fields[3].queue.includes(socket.username)){
-		var index = fields[0].queue.indexOf(socket.username);
-		fields[3].queue.splice(index, 1);
-		for(let i = 0; i < fields[3].queue.length; i++){
-				io.to(fields[3].queue[i]).emit('update-queue', i);
-			}
-	}
-	else if(fields[0].challenger == socket.username){
-		fields[0].kingWins = 3;
-		io.to(fields[0].king).emit('free-win');
-	}else if(fields[0].king == socket.username){
-		if(fields[0].challenger != ""){
-		fields[0].challengerWins = 3;
-		io.to(fields[0].challenger).emit('free-win');
-		}else{
-			fields[0].king = "";
-			fields[0].streak = 0;
-			UpdateKings(1);
 		}
-	}else if(fields[1].challenger == socket.username){
-		fields[1].kingWins = 3;
-		io.to(fields[1].king).emit('free-win');
-	}else if(fields[1].king == socket.username){
-		if(fields[1].challenger != ""){
-		fields[1].challengerWins = 3;
-		io.to(fields[1].challenger).emit('free-win');
-		}else{
-			fields[1].king = "";
-			fields[1].streak = 0;
-			UpdateKings(2);
-		}
-	}else if(fields[2].challenger == socket.username){
-		fields[2].kingWins = 3;
-		io.to(fields[2].king).emit('free-win');
-	}else if(fields[2].king == socket.username){
-		if(fields[2].challenger != ""){
-		fields[2].challengerWins = 3;
-		io.to(fields[2].challenger).emit('free-win');
-		}else{
-		fields[2].king = "";
-		fields[2].streak = 0;
-		UpdateKings(3);
-		}
-	}else if(fields[3].challenger == socket.username){
-		fields[3].kingWins = 3;
-		io.to(fields[3].king).emit('free-win');
-	}else if(fields[3].king == socket.username){
-		if(fields[3].challenger != ""){
-			fields[3].challengerWins = 3;
-			io.to(fields[3].challenger).emit('free-win');
-		}else{
-			fields[3].king = "";
-			fields[3].streak = 0;
-			UpdateKings(4);
-		}
-	}
+	  }
 	delete clients[socket.username];
-	if(rooms[socket.username]){
-		delete rooms[socket.username];
-	}
+	var namePos = usernameList.indexOf(socket.username);
+	usernameList.splice(namePos, 1);
+	//delete usernameList[socket.username];
 	
     console.log(socket.username, ' disconnected');
   });
@@ -410,5 +392,5 @@ io.on('connection', (socket) => {
 
 server.listen(process.env.PORT || 3000, () => {
   console.log('listening on *:80');
-  console.log(process.env.PORT);
+  //console.log(process.env.PORT);
 });
